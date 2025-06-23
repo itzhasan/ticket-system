@@ -6,6 +6,7 @@ use App\Models\Template\Template as TemplateTemplate;
 use App\Models\Template\TemplateField;
 use App\Models\Department;
 use App\Models\Template\TemplateFields;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 class Template extends Component
@@ -202,7 +203,8 @@ class Template extends Component
         TemplateFields::find($fieldId)->delete();
         session()->flash('message', 'Field deleted successfully!');
     }
-
+    
+    #[Title('Template management')]
     public function render()
     {
         $templates = TemplateTemplate::with(['department', 'fields' => function($query) {

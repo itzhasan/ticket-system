@@ -1,12 +1,15 @@
 <?php
+
 namespace App\Livewire\Ticket;
 
+use App\Models\Department;
 use App\Models\Ticket\Ticket;
 use App\Models\Message;
 use App\Models\Ticket\Message as TicketMessage;
 use App\Models\Ticket\TicketDepartment;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Title;
 
 class TicketById extends Component
 {
@@ -14,12 +17,19 @@ class TicketById extends Component
     public $id;
     public $messages = [];
     public $newMessage = '';
+    public $currentDepartment;
 
     public function mount($id)
     {
         $this->id = $id;
         $this->loadTicket();
         $this->loadMessages();
+
+        $lastDepartment = TicketDepartment::where('ticket_id', $this->id)
+            ->latest()
+            ->first();
+
+        $this->currentDepartment = $lastDepartment ? $lastDepartment->department : null;
     }
 
     public function loadTicket()
@@ -59,18 +69,54 @@ class TicketById extends Component
 
         $this->dispatch('message-sent');
     }
-    public function forwardTicket($ticketId, $departmentIds)
+    public function forwardTicket($departmentId)
     {
+        $exists = TicketDepartment::where('ticket_id', $this->id)
+            ->where('department_id', $departmentId)
+            ->exists();
+
+        if ($exists) {
+            session()->flash('error', 'This department is already assigned .');
+            return;
+        }
+
         TicketDepartment::create([
-            'ticket_id' => $ticketId,
-            'department_id' => $departmentIds,
+            'ticket_id' => $this->id,
+            'department_id' => $departmentId,
         ]);
+
+        $this->currentDepartment = Department::find($departmentId);
 
         session()->flash('message', 'Ticket forwarded successfully!');
     }
+public function updateTicketStatus($ticketId, $status)
+{
+    $ticket = Ticket::find($ticketId);
 
+    if (!$ticket) {
+        session()->flash('error', 'Ticket not found.');
+        return;
+    }
+
+    // Optionally: Validate the status
+    $allowedStatuses = ['pending', 'in_progress', 'resolved', 'closed'];
+    if (!in_array($status, $allowedStatuses)) {
+        session()->flash('error', 'Invalid status selected.');
+        return;
+    }
+
+    $ticket->update(['status' => $status]);
+
+    session()->flash('message', 'Ticket status updated successfully!');
+}
+
+
+
+    #[Title('Ticket Details')]
     public function render()
     {
-        return view('livewire.ticket.ticket-by-id');
+        return view('livewire.ticket.ticket-by-id', [
+            'departments' => Department::all(),
+        ]);
     }
 }

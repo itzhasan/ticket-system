@@ -12,6 +12,7 @@ use App\Models\Template\Template as TemplateTemplate;
 use App\Models\Ticket\Message as TicketMessage;
 use App\Models\Ticket\Ticket as TicketTicket;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Title;
 
 class Ticket extends Component
 {
@@ -48,7 +49,7 @@ class Ticket extends Component
     {
         $this->resetForm();
     }
-
+    #[Title('Tickets')]
     public function render()
     {
         $tickets = TicketTicket::with(['category', 'createdBy', 'departments'])
@@ -154,7 +155,7 @@ class Ticket extends Component
         // Assign single department
         TicketDepartment::create([
             'ticket_id' => $ticket->id,
-            'department_id' => $this->departmentIds, // single department id
+            'department_id' => $this->departmentIds, 
         ]);
 
         session()->flash('message', 'Ticket created successfully!');

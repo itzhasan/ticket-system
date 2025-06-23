@@ -245,7 +245,3 @@
         </div>
     @endif
 </div>
-
-@push('scripts')
-
-@endpush
