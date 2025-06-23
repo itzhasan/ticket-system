@@ -57,9 +57,7 @@
                                 </svg>
                             </button>
                             <div x-show="ticketOpen" x-transition class="mt-2 pl-8 space-y-2">
-
                                 <a href="{{ route('tickets')}}" class="block py-2 px-4 rounded hover:bg-gray-700 transition-colors duration-200">Tickets</a>
-                                <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700 transition-colors duration-200">Templates</a>
                             </div>
                         </div>
                     </li>

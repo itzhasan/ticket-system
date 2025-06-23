@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\Dashboard;
 use App\Livewire\Template\Category;
 use App\Livewire\Template\Template;
 use App\Livewire\Ticket\Ticket;
+use App\Livewire\Ticket\TicketById;
 use App\Livewire\User\UserManagement;
 
 Route::get('/', function () {
@@ -22,6 +23,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/tickets', Ticket::class)->name('tickets');
+    Route::get('/ticket/{id}', TicketById::class)->name('ticket.view');
 
     // Logout route
     Route::post('/logout', function () {
