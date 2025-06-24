@@ -8,10 +8,16 @@
         </button>
     </div>
 
-    <!-- Flash Message -->
+    <!-- Flash Messages -->
     @if (session()->has('message'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
             {{ session('message') }}
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -51,20 +57,13 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created
-                        By</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Departments</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
-                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departments</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -93,7 +92,8 @@
                             @endforeach
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $ticket->created_at->format('M d, Y') }}</td>
+                            {{ $ticket->created_at->format('M d, Y') }}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
                                 <button wire:click="viewTicket({{ $ticket->id }})"
@@ -104,14 +104,10 @@
                                     <select wire:change="updateTicketStatus({{ $ticket->id }}, $event.target.value)"
                                         class="text-xs border border-gray-300 rounded px-2 py-1">
                                         <option value="">Update Status</option>
-                                        <option value="pending" @if($ticket->status === 'pending') selected @endif>Pending
-                                        </option>
-                                        <option value="in_progress" @if($ticket->status === 'in_progress') selected @endif>In
-                                            Progress</option>
-                                        <option value="resolved" @if($ticket->status === 'resolved') selected @endif>Resolved
-                                        </option>
-                                        <option value="closed" @if($ticket->status === 'closed') selected @endif>Closed
-                                        </option>
+                                        <option value="pending" @if($ticket->status === 'pending') selected @endif>Pending</option>
+                                        <option value="in_progress" @if($ticket->status === 'in_progress') selected @endif>In Progress</option>
+                                        <option value="resolved" @if($ticket->status === 'resolved') selected @endif>Resolved</option>
+                                        <option value="closed" @if($ticket->status === 'closed') selected @endif>Closed</option>
                                     </select>
                                 </div>
 
@@ -143,16 +139,19 @@
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Create New Ticket</h3>
 
                     <form wire:submit.prevent="createTicket">
+                        <!-- Title Field -->
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                            <input wire:model="title" type="text"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Title <span class="text-red-500">*</span></label>
+                            <input wire:model="title" type="text" placeholder="Enter ticket title"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('title') border-red-500 @enderror">
                             @error('title') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
+                        <!-- Category Field -->
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-transparent mb-2">Category</label>
-                            <select wire:model.live="categoryId" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Category <span class="text-red-500">*</span></label>
+                            <select wire:model.live="categoryId"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('categoryId') border-red-500 @enderror">
                                 <option value="">Select Category</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -161,11 +160,13 @@
                             @error('categoryId') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
+                        <!-- Template Field -->
                         @if($categoryId)
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Template</label>
-                                <select wire:model.live="templateId" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                    <option value="">Select Template</option>
+                                <select wire:model.live="templateId"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('templateId') border-red-500 @enderror">
+                                    <option value="">Select Template (Optional)</option>
                                     @foreach($templates as $template)
                                         <option value="{{ $template->id }}">{{ $template->name }}</option>
                                     @endforeach
@@ -173,69 +174,91 @@
                                 @error('templateId') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                         @endif
-
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Departments</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <select wire:model.live="departmentIds"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                    <option value="">Select Department</option>
-                                    @foreach($departments as $department)
-                                        <option value="{{ $department->id }}">{{ $department->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            @if($errors->has('departmentIds'))
-                                <span class="text-red-500 text-sm">{{ $errors->first('departmentIds') }}</span>
-                            @endif
-                        </div>
-
                         <!-- Template Fields -->
                         @if(!empty($templateFields))
-                            <div class="mb-4">
-                                <h4 class="text-md font-medium text-gray-900 mb-3">Template Fields</h4>
-                                @foreach($templateFields as $field)
-                                    <div class="mb-3">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                                            {{ $field['name'] }}
-                                            @if($field['required']) <span class="text-red-500">*</span> @endif
-                                        </label>
+                            <div class="mb-6">
+                                <h4 class="text-md font-medium text-gray-900 mb-3 border-b pb-2">Template Fields</h4>
+                                <div class="space-y-4">
+                                    @foreach($templateFields as $field)
+                                        <div class="bg-gray-50 p-3 rounded-md">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                {{ $field['name'] }}
+                                                @if($field['required']) <span class="text-red-500">*</span> @endif
+                                            </label>
 
-                                        @if($field['type'] === 'text')
-                                            <input wire:model="fieldValues.{{ $field['id'] }}" type="text"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                        @elseif($field['type'] === 'textarea')
-                                            <textarea wire:model="fieldValues.{{ $field['id'] }}" rows="3"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
-                                        @elseif($field['type'] === 'select')
-                                            <select wire:model="fieldValues.{{ $field['id'] }}"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                                <option value="">Select Option</option>
-                                                @if($field['options'])
-                                                    @foreach(json_decode($field['options']) ?? [] as $option)
-                                                        <option value="{{ $option }}">{{ $option }}</option>
-                                                    @endforeach
-                                                @endif
-                                            </select>
-                                        @elseif($field['type'] === 'date')
-                                            <input wire:model="fieldValues.{{ $field['id'] }}" type="date"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                        @endif
+                                            @if($field['type'] === 'text')
+                                                <input wire:model="fieldValues.{{ $field['id'] }}" type="text"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror"
+                                                    placeholder="Enter {{ strtolower($field['name']) }}">
 
-                                        @error('fieldValues.' . $field['id'])
-                                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                @endforeach
+                                            @elseif($field['type'] === 'textarea')
+                                                <textarea wire:model="fieldValues.{{ $field['id'] }}" rows="3"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror"
+                                                    placeholder="Enter {{ strtolower($field['name']) }}"></textarea>
+
+                                            @elseif($field['type'] === 'select')
+                                                <select wire:model="fieldValues.{{ $field['id'] }}"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
+                                                    <option value="">Select {{ $field['name'] }}</option>
+                                                    @if(!empty($field['options']))
+                                                        @foreach($field['options'] as $option)
+                                                            <option value="{{ $option }}">{{ $option }}</option>
+                                                        @endforeach
+                                                    @endif
+                                                </select>
+
+                                            @elseif($field['type'] === 'radio')
+                                                <div class="space-y-2">
+                                                    @if(!empty($field['options']))
+                                                        @foreach($field['options'] as $option)
+                                                            <label class="flex items-center">
+                                                                <input type="radio" wire:model="fieldValues.{{ $field['id'] }}" value="{{ $option }}"
+                                                                    class="text-blue-600 focus:ring-blue-500">
+                                                                <span class="ml-2 text-sm text-gray-700">{{ $option }}</span>
+                                                            </label>
+                                                        @endforeach
+                                                    @endif
+                                                </div>
+
+                                            @elseif($field['type'] === 'checkbox')
+                                                <div class="space-y-2">
+                                                    @if(!empty($field['options']))
+                                                        @foreach($field['options'] as $option)
+                                                            <label class="flex items-center">
+                                                                <input type="checkbox" wire:model="fieldValues.{{ $field['id'] }}" value="{{ $option }}"
+                                                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                                <span class="ml-2 text-sm text-gray-700">{{ $option }}</span>
+                                                            </label>
+                                                        @endforeach
+                                                    @endif
+                                                </div>
+
+                                            @elseif($field['type'] === 'date')
+                                                <input wire:model="fieldValues.{{ $field['id'] }}" type="date"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
+
+                                            @elseif($field['type'] === 'file')
+                                                <input wire:model="fieldValues.{{ $field['id'] }}" type="file"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
+                                            @endif
+
+                                            @error('fieldValues.' . $field['id'])
+                                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
 
-                        <div class="flex items-center justify-end space-x-4 mt-6">
+                        <!-- Form Actions -->
+                        <div class="flex items-center justify-end space-x-4 mt-6 pt-4 border-t">
                             <button type="button" wire:click="closeCreateModal"
-                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
                                 Cancel
                             </button>
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            <button type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 Create Ticket
                             </button>
                         </div>

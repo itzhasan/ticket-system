@@ -226,280 +226,324 @@
     </div>
     @endif
 
+   <!-- Fields Management Modal -->
     <!-- Fields Management Modal -->
-    @if($showFieldsModal)
-    <div class="fixed inset-0 bg-transparent bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-10 mx-auto p-5 border w-11/12 lg:w-4/5 xl:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-medium text-gray-900">Manage Template Fields</h3>
-                <div class="flex space-x-2">
-                    <button wire:click="$set('showFieldForm', true)"
-                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Add Field
-                    </button>
-                    <button wire:click="$set('showFieldsModal', false)" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Add Field Form -->
-            @if($showFieldForm)
-            <div class="bg-gray-50 p-6 rounded-lg mb-6">
-                <h4 class="text-lg font-medium text-gray-900 mb-4">Add New Field</h4>
-                <form wire:submit.prevent="createField" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Field Name</label>
-                            <input type="text" wire:model="fieldName"
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                placeholder="Enter field name">
-                            @error('fieldName') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Field Type</label>
-                            <select wire:model="fieldType"
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                @foreach($fieldTypes as $type => $label)
-                                <option value="{{ $type }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @error('fieldType') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                            <input type="number" wire:model="fieldOrder" min="0"
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            @error('fieldOrder') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                    </div>
-
-                    @if(in_array($fieldType, ['select', 'radio', 'checkbox']))
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Options</label>
-                        <textarea wire:model="fieldOptions" rows="3"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            placeholder="Enter options separated by new lines (e.g., Option 1&#10;Option 2&#10;Option 3)"></textarea>
-                        <p class="mt-1 text-sm text-gray-500">Enter each option on a new line</p>
-                        @error('fieldOptions') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                    </div>
-                    @endif
-
-                    <div class="flex items-center">
-                        <input type="checkbox" wire:model="fieldRequired" id="field-required"
-                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                        <label for="field-required" class="ml-2 block text-sm text-gray-900">Required field</label>
-                    </div>
-
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" wire:click="resetFieldForm"
-                            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                            Add Field
-                        </button>
-                    </div>
-                </form>
-            </div>
-            @endif
-
-            <!-- Fields List -->
-            <div class="space-y-4">
-                <h4 class="text-lg font-medium text-gray-900">Template Fields</h4>
-                @forelse($selectedTemplateFields as $field)
-                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-3">
-                                <div class="flex-shrink-0">
-                                    @switch($field->type)
-                                        @case('text')
-                                            <div class="h-8 w-8 bg-blue-100 rounded-md flex items-center justify-center">
-                                                <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
-                                                </svg>
-                                            </div>
-                                            @break
-                                        @case('textarea')
-                                            <div class="h-8 w-8 bg-green-100 rounded-md flex items-center justify-center">
-                                                <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                                                </svg>
-                                            </div>
-                                            @break
-                                        @case('select')
-                                            <div class="h-8 w-8 bg-purple-100 rounded-md flex items-center justify-center">
-                                                <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
-                                                </svg>
-                                            </div>
-                                            @break
-                                        @case('checkbox')
-                                            <div class="h-8 w-8 bg-yellow-100 rounded-md flex items-center justify-center">
-                                                <svg class="h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>
-                                            </div>
-                                            @break
-                                        @case('radio')
-                                            <div class="h-8 w-8 bg-pink-100 rounded-md flex items-center justify-center">
-                                                <svg class="h-4 w-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-                                                </svg>
-                                            </div>
-                                            @break
-                                        @case('date')
-                                            <div class="h-8 w-8 bg-indigo-100 rounded-md flex items-center justify-center">
-                                                <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                </svg>
-                                            </div>
-                                            @break
-                                        @case('file')
-                                            <div class="h-8 w-8 bg-red-100 rounded-md flex items-center justify-center">
-                                                <svg class="h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                                                </svg>
-                                            </div>
-                                            @break
-                                    @endswitch
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-2">
-                                        <h5 class="text-sm font-medium text-gray-900">{{ $field->name }}</h5>
-                                        @if($field->required)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                                Required
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <div class="flex items-center space-x-4 mt-1">
-                                        <p class="text-sm text-gray-500">{{ $fieldTypes[$field->type] }}</p>
-                                        <p class="text-sm text-gray-500">Order: {{ $field->order }}</p>
-                                    </div>
-                                    @if($field->options)
-                                    <div class="mt-2">
-                                        <p class="text-xs text-gray-500 mb-1">Options:</p>
-                                        <div class="flex flex-wrap gap-1">
-                                            @foreach(explode("\n", $field->options) as $option)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                                                {{ trim($option) }}
-                                            </span>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button wire:click="editField({{ $field->id }})"
-                                class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </button>
-                            <button wire:click="deleteField({{ $field->id }})"
-                                class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                @empty
-                <div class="text-center py-8">
-                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+@if($showFieldsModal)
+<div class="fixed inset-0 bg-transparent bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 lg:w-4/5 xl:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-medium text-gray-900">Manage Template Fields</h3>
+            <div class="flex space-x-2">
+                <button wire:click="$set('showFieldForm', true)"
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    <p class="text-gray-500 text-sm">No fields added yet. Click "Add Field" to create your first field.</p>
-                </div>
-                @endforelse
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <!-- Edit Field Modal -->
-    @if($showEditFieldModal)
-    <div class="fixed inset-0 bg-transparent bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Edit Field</h3>
-                <button wire:click="resetFieldForm" class="text-gray-400 hover:text-gray-600">
+                    Add Field
+                </button>
+                <button wire:click="$set('showFieldsModal', false)" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
+        </div>
 
-            <form wire:submit.prevent="updateField" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Add Field Form -->
+        @if($showFieldForm)
+        <div class="bg-gray-50 p-6 rounded-lg mb-6">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">Add New Field</h4>
+            <form wire:submit.prevent="createField" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Field Name</label>
                         <input type="text" wire:model="fieldName"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            placeholder="Enter field name">
                         @error('fieldName') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Field Type</label>
                         <select wire:model="fieldType"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             @foreach($fieldTypes as $type => $label)
                             <option value="{{ $type }}">{{ $label }}</option>
                             @endforeach
                         </select>
                         @error('fieldType') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
-                </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                    <input type="number" wire:model="fieldOrder" min="0"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    @error('fieldOrder') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                        <input type="number" wire:model="fieldOrder" min="0"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        @error('fieldOrder') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
                 </div>
 
                 @if(in_array($fieldType, ['select', 'radio', 'checkbox']))
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Options</label>
-                    <textarea wire:model="fieldOptions" rows="4"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        placeholder="Enter options separated by new lines"></textarea>
-                    <p class="mt-1 text-sm text-gray-500">Enter each option on a new line</p>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Options</label>
+                    <div class="space-y-2">
+                        @foreach($fieldOptions as $index => $option)
+                        <div class="flex items-center space-x-2">
+                            <input type="text" wire:model="fieldOptions.{{ $index }}"
+                                class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                placeholder="Enter option {{ $index + 1 }}">
+                            @if(count($fieldOptions) > 1)
+                            <button type="button" wire:click="removeOption({{ $index }})"
+                                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                            @endif
+                        </div>
+                        @endforeach
+                        <button type="button" wire:click="addOption"
+                            class="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Add Option
+                        </button>
+                    </div>
                     @error('fieldOptions') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    @error('fieldOptions.*') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 @endif
 
                 <div class="flex items-center">
-                    <input type="checkbox" wire:model="fieldRequired" id="edit-field-required"
+                    <input type="checkbox" wire:model="fieldRequired" id="field-required"
                         class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                    <label for="edit-field-required" class="ml-2 block text-sm text-gray-900">Required field</label>
+                    <label for="field-required" class="ml-2 block text-sm text-gray-900">Required field</label>
                 </div>
 
-                <div class="flex justify-end space-x-3 pt-4">
+                <div class="flex justify-end space-x-3">
                     <button type="button" wire:click="resetFieldForm"
                         class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                         Cancel
                     </button>
                     <button type="submit"
                         class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                        Update Field
+                        Add Field
                     </button>
                 </div>
             </form>
         </div>
+        @endif
+
+        <!-- Fields List -->
+        <div class="space-y-4">
+            <h4 class="text-lg font-medium text-gray-900">Template Fields</h4>
+            @forelse($selectedTemplateFields as $field)
+            <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                @switch($field->type)
+                                    @case('text')
+                                        <div class="h-8 w-8 bg-blue-100 rounded-md flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                                            </svg>
+                                        </div>
+                                        @break
+                                    @case('textarea')
+                                        <div class="h-8 w-8 bg-green-100 rounded-md flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                            </svg>
+                                        </div>
+                                        @break
+                                    @case('select')
+                                        <div class="h-8 w-8 bg-purple-100 rounded-md flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                            </svg>
+                                        </div>
+                                        @break
+                                    @case('checkbox')
+                                        <div class="h-8 w-8 bg-yellow-100 rounded-md flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        @break
+                                    @case('radio')
+                                        <div class="h-8 w-8 bg-pink-100 rounded-md flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                                            </svg>
+                                        </div>
+                                        @break
+                                    @case('date')
+                                        <div class="h-8 w-8 bg-indigo-100 rounded-md flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                        @break
+                                    @case('file')
+                                        <div class="h-8 w-8 bg-red-100 rounded-md flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                            </svg>
+                                        </div>
+                                        @break
+                                @endswitch
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <h5 class="text-sm font-medium text-gray-900">{{ $field->name }}</h5>
+                                    @if($field->required)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                            Required
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center space-x-4 mt-1">
+                                    <p class="text-sm text-gray-500">{{ $fieldTypes[$field->type] }}</p>
+                                    <p class="text-sm text-gray-500">Order: {{ $field->order }}</p>
+                                </div>
+                                @if($field->fieldOptions->isNotEmpty())
+                                <div class="mt-2">
+                                    <p class="text-xs text-gray-500 mb-1">Options:</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach($field->fieldOptions as $option)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                            {{ $option->value }}
+                                        </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button wire:click="editField({{ $field->id }})"
+                            class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </button>
+                        <button wire:click="deleteField({{ $field->id }})"
+                            onclick="return confirm('Are you sure you want to delete this field?')"
+                            class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @empty
+            <div class="text-center py-8">
+                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <p class="text-gray-500 text-sm">No fields added yet. Click "Add Field" to create your first field.</p>
+            </div>
+            @endforelse
+        </div>
     </div>
-    @endif
+</div>
+@endif
+
+<!-- Edit Field Modal -->
+@if($showEditFieldModal)
+<div class="fixed inset-0 bg-transparent bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white max-h-[80vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Edit Field</h3>
+            <button wire:click="resetFieldForm" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form wire:submit.prevent="updateField" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Field Name</label>
+                    <input type="text" wire:model="fieldName"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    @error('fieldName') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Field Type</label>
+                    <select wire:model="fieldType"
+    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        @foreach($fieldTypes as $type => $label)
+                        <option value="{{ $type }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('fieldType') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                <input type="number" wire:model="fieldOrder" min="0"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                @error('fieldOrder') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            @if(in_array($fieldType, ['select', 'radio', 'checkbox']))
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Options</label>
+                <div class="space-y-2">
+                    @foreach($fieldOptions as $index => $option)
+                    <div class="flex items-center space-x-2">
+                        <input type="text" wire:model="fieldOptions.{{ $index }}"
+                            class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            placeholder="Enter option {{ $index + 1 }}">
+                        @if(count($fieldOptions) > 1)
+                        <button type="button" wire:click="removeOption({{ $index }})"
+                            class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                        @endif
+                    </div>
+                    @endforeach
+                    <button type="button" wire:click="addOption"
+                        class="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add Option
+                    </button>
+                </div>
+                @error('fieldOptions') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                @error('fieldOptions.*') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            </div>
+            @endif
+
+            <div class="flex items-center">
+                <input type="checkbox" wire:model="fieldRequired" id="edit-field-required"
+                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                <label for="edit-field-required" class="ml-2 block text-sm text-gray-900">Required field</label>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" wire:click="resetFieldForm"
+                    class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                    Update Field
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 </div>

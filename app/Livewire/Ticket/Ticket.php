@@ -12,6 +12,7 @@ use App\Models\Template\Template as TemplateTemplate;
 use App\Models\Ticket\Message as TicketMessage;
 use App\Models\Ticket\Ticket as TicketTicket;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Title;
 
 class Ticket extends Component
@@ -29,19 +30,17 @@ class Ticket extends Component
     public $templateFields = [];
     public $fieldValues = [];
 
-
     // Filter properties
     public $statusFilter = 'all';
     public $categoryFilter = 'all';
     public $search = '';
 
     protected $rules = [
-        'title' => 'required|string|max:255',
+        'title' => 'required|string|min:3|max:255',
         'categoryId' => 'required|exists:categories,id',
-        'templateId' => 'required|exists:templates,id',
+        'templateId' => 'nullable|exists:templates,id',
         'departmentIds' => 'required|min:1',
         'departmentIds.*' => 'exists:departments,id',
-        'messageContent' => 'required|string|min:1',
         'selectedTicket.status' => 'in:pending,in_progress,resolved,closed',
     ];
 
@@ -49,6 +48,7 @@ class Ticket extends Component
     {
         $this->resetForm();
     }
+
     #[Title('Tickets')]
     public function render()
     {
@@ -67,7 +67,7 @@ class Ticket extends Component
 
         $categories = Category::all();
         $departments = Department::all();
-        $templates = TemplateTemplate::with('templateFields')
+        $templates = TemplateTemplate::with(['templateFields.fieldOptions'])
             ->when($this->categoryId, function ($query) {
                 $query->where('category_id', $this->categoryId);
             })
@@ -86,21 +86,37 @@ class Ticket extends Component
         $this->templateId = null;
         $this->templateFields = [];
         $this->fieldValues = [];
+        $this->departmentIds;
     }
 
     public function updatedTemplateId()
     {
         if ($this->templateId) {
-            $template = TemplateTemplate::with('templateFields')->find($this->templateId);
-            $this->templateFields = $template->templateFields->toArray();
+            $template = TemplateTemplate::with(['templateFields.fieldOptions'])->find($this->templateId);
+            if ($template) {
+                $this->templateFields = $template->templateFields->map(function ($field) {
+                    return [
+                        'id' => $field->id,
+                        'name' => $field->name,
+                        'type' => $field->type,
+                        'required' => $field->required,
+                        'order' => $field->order,
+                        'options' => $field->fieldOptions->pluck('value')->toArray()
+                    ];
+                })->toArray();
 
-            // Initialize field values
-            foreach ($this->templateFields as $field) {
-                $this->fieldValues[$field['id']] = '';
+                // Initialize field values
+                foreach ($this->templateFields as $field) {
+                    $this->fieldValues[$field['id']] = '';
+                }
+
+                // Auto-select the template's department
+                $this->departmentIds = $template->department_id;
             }
         } else {
             $this->templateFields = [];
             $this->fieldValues = [];
+            $this->departmentIds;
         }
     }
 
@@ -118,56 +134,74 @@ class Ticket extends Component
 
     public function createTicket()
     {
+        // Basic validation
         $this->validate([
-            'title' => 'required|string|min:3',
-            'categoryId' => 'required|integer',
-            'templateId' => 'nullable|integer',
-            'departmentIds' => 'required|integer', // Single select, must be integer
+            'title' => 'required|string|min:3|max:255',
+            'categoryId' => 'required|exists:categories,id',
+            'templateId' => 'nullable|exists:templates,id',
         ]);
 
-        // Validate required template fields
-        foreach ($this->templateFields as $field) {
-            if ($field['required'] && empty($this->fieldValues[$field['id']])) {
-                $this->addError('fieldValues.' . $field['id'], 'This field is required.');
-                return; // stops the function if required field is missing
+        // Validate template fields if template is selected
+        if ($this->templateId && !empty($this->templateFields)) {
+            foreach ($this->templateFields as $field) {
+                $fieldValue = $this->fieldValues[$field['id']] ?? '';
+
+                if ($field['required'] && (empty($fieldValue) || (is_string($fieldValue) && trim($fieldValue) === ''))) {
+                    $this->addError('fieldValues.' . $field['id'], 'This field is required.');
+                }
+            }
+
+            // If there are field validation errors, don't proceed
+            if ($this->getErrorBag()->has('fieldValues.*')) {
+                return;
             }
         }
 
-        // Create ticket
-        $ticket = TicketTicket::create([
-            'title' => $this->title,
-            'category_id' => $this->categoryId,
-            'created_by_id' => Auth::id(),
-            'status' => 'pending',
-        ]);
-
-        // Save template field values
-        foreach ($this->fieldValues as $fieldId => $value) {
-            if (!empty($value)) {
-                TicketFieldsValue::create([
-                    'ticket_id' => $ticket->id,
-                    'template_field_id' => $fieldId,
-                    'value' => $value,
-                ]);
-            }
+        // Validate departments
+        if (empty($this->departmentIds)) {
+            $this->addError('departmentIds', 'At least one department must be selected.');
+            return;
         }
 
-        // Assign single department
-        TicketDepartment::create([
-            'ticket_id' => $ticket->id,
-            'department_id' => $this->departmentIds, 
-        ]);
+        try {
+            // Create the ticket
+            $ticket = TicketTicket::create([
+                'title' => $this->title,
+                'category_id' => $this->categoryId,
+                'created_by_id' => Auth::id(),
+                'status' => 'pending',
+            ]);
 
-        session()->flash('message', 'Ticket created successfully!');
+            // Save template field values
+            if ($this->templateId && !empty($this->templateFields)) {
+                foreach ($this->fieldValues as $fieldId => $value) {
+                    if (!empty($value) && trim($value) !== '') {
+                        TicketFieldsValue::create([
+                            'ticket_id' => $ticket->id,
+                            'template_field_id' => $fieldId,
+                            'value' => is_array($value) ? json_encode($value) : $value,
+                        ]);
+                    }
+                }
+            }
 
-        // Optional: Reset form values
-        $this->reset(['title', 'categoryId', 'templateId', 'departmentIds', 'fieldValues']);
+            // Assign department
+            TicketDepartment::create([
+                'ticket_id' => $ticket->id,
+                'department_id' => $this->departmentIds,
+            ]);
 
-        // Close modal and reset pagination if needed
-        $this->closeCreateModal();
-        $this->resetPage();
+
+            session()->flash('message', 'Ticket created successfully!');
+
+            // Reset form and close modal
+            $this->resetForm();
+            $this->closeCreateModal();
+            $this->resetPage();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to create ticket. Please try again.');
+        }
     }
-
 
     public function viewTicket($ticketId)
     {
@@ -177,18 +211,20 @@ class Ticket extends Component
     public function updateTicketStatus($ticketId, $status)
     {
         $ticket = TicketTicket::find($ticketId);
-        $ticket->update(['status' => $status]);
-
-        session()->flash('message', 'Ticket status updated successfully!');
+        if ($ticket) {
+            $ticket->update(['status' => $status]);
+            session()->flash('message', 'Ticket status updated successfully!');
+        }
     }
 
     public function deleteTicket($ticketId)
     {
         $ticket = TicketTicket::find($ticketId);
-        $ticket->delete();
-
-        session()->flash('message', 'Ticket deleted successfully!');
-        $this->resetPage();
+        if ($ticket) {
+            $ticket->delete();
+            session()->flash('message', 'Ticket deleted successfully!');
+            $this->resetPage();
+        }
     }
 
     private function resetForm()
@@ -199,6 +235,7 @@ class Ticket extends Component
         $this->departmentIds;
         $this->templateFields = [];
         $this->fieldValues = [];
+        $this->resetValidation();
     }
 
     public function updatingSearch()
@@ -216,19 +253,17 @@ class Ticket extends Component
         $this->resetPage();
     }
 
-
     public function getTicketsByStatus($status)
     {
-        return Ticket::where('status', $status)
+        return TicketTicket::where('status', $status)
             ->with(['category', 'createdBy', 'departments'])
             ->orderBy('created_at', 'desc')
             ->get();
     }
 
-    // helps for accessibility
     public function getTicketsByDepartment($departmentId)
     {
-        return Ticket::whereHas('departments', function ($query) use ($departmentId) {
+        return TicketTicket::whereHas('departments', function ($query) use ($departmentId) {
             $query->where('department_id', $departmentId);
         })
             ->with(['category', 'createdBy', 'departments'])

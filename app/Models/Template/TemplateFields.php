@@ -20,6 +20,10 @@ class TemplateFields extends Model
     {
         return $this->belongsTo(Template::class);
     }
+    public function fieldOptions()
+    {
+        return $this->hasMany(FieldOption::class, 'template_field_id');
+    }
     public function ticketFields(){
         return $this->hasMany(TicketFieldsValue::class);
     }

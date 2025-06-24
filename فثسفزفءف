@@ -1,0 +1,293 @@
+<?php
+
+// Add these properties to your Livewire component
+public $bulkFields = [];
+public $editingFields = [];
+public $showBulkFieldForm = false;
+public $showBulkEditModal = false;
+
+// Method to initialize bulk field addition
+public function initBulkFieldForm()
+{
+    $this->bulkFields = [
+        [
+            'name' => '',
+            'type' => 'text',
+            'required' => false,
+            'order' => 0,
+            'options' => ''
+        ]
+    ];
+    $this->showBulkFieldForm = true;
+}
+
+// Method to add more field rows in bulk form
+public function addFieldRow()
+{
+    $this->bulkFields[] = [
+        'name' => '',
+        'type' => 'text',
+        'required' => false,
+        'order' => count($this->bulkFields),
+        'options' => ''
+    ];
+}
+
+// Method to remove a field row from bulk form
+public function removeFieldRow($index)
+{
+    if (count($this->bulkFields) > 1) {
+        unset($this->bulkFields[$index]);
+        $this->bulkFields = array_values($this->bulkFields); // Re-index array
+
+        // Update order values
+        foreach ($this->bulkFields as $key => $field) {
+            $this->bulkFields[$key]['order'] = $key;
+        }
+    }
+}
+
+// Method to create multiple fields at once
+public function createBulkFields()
+{
+    // Validate all fields
+    $rules = [];
+    foreach ($this->bulkFields as $index => $field) {
+        $rules["bulkFields.{$index}.name"] = 'required|string|min:2|max:255';
+        $rules["bulkFields.{$index}.type"] = 'required|in:text,textarea,select,checkbox,radio,date,file';
+        $rules["bulkFields.{$index}.order"] = 'integer|min:0';
+
+        // Validate options for select/radio/checkbox types
+        if (in_array($field['type'], ['select', 'radio', 'checkbox'])) {
+            $rules["bulkFields.{$index}.options"] = 'required|string';
+        }
+    }
+
+    $this->validate($rules, [
+        'bulkFields.*.name.required' => 'Field name is required.',
+        'bulkFields.*.name.min' => 'Field name must be at least 2 characters.',
+        'bulkFields.*.type.required' => 'Field type is required.',
+        'bulkFields.*.options.required' => 'Options are required for this field type.',
+    ]);
+
+    try {
+        foreach ($this->bulkFields as $fieldData) {
+            // Create the template field
+            $templateField = TemplateFields::create([
+                'template_id' => $this->selectedTemplateId,
+                'name' => $fieldData['name'],
+                'type' => $fieldData['type'],
+                'required' => $fieldData['required'],
+                'order' => $fieldData['order'],
+            ]);
+
+            // Create field options if the field type requires them
+            if (in_array($fieldData['type'], ['select', 'radio', 'checkbox']) && !empty($fieldData['options'])) {
+                $options = array_filter(array_map('trim', explode("\n", $fieldData['options'])));
+
+                foreach ($options as $option) {
+                    if (!empty($option)) {
+                        FieldOptions::create([
+                            'template_field_id' => $templateField->id,
+                            'value' => $option,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $this->resetBulkFieldForm();
+        session()->flash('message', count($this->bulkFields) . ' fields added successfully!');
+
+    } catch (\Exception $e) {
+        session()->flash('error', 'Error creating fields: ' . $e->getMessage());
+    }
+}
+
+// Method to initialize bulk edit
+public function initBulkEdit()
+{
+    $this->editingFields = [];
+
+    $fields = TemplateFields::with('fieldOptions')
+        ->where('template_id', $this->selectedTemplateId)
+        ->orderBy('order')
+        ->get();
+
+    foreach ($fields as $field) {
+        $this->editingFields[] = [
+            'id' => $field->id,
+            'name' => $field->name,
+            'type' => $field->type,
+            'required' => $field->required,
+            'order' => $field->order,
+            'options' => $field->fieldOptions->pluck('value')->implode("\n"),
+        ];
+    }
+
+    $this->showBulkEditModal = true;
+}
+
+// Method to add a new field row in bulk edit
+public function addEditFieldRow()
+{
+    $this->editingFields[] = [
+        'id' => null, // null means it's a new field
+        'name' => '',
+        'type' => 'text',
+        'required' => false,
+        'order' => count($this->editingFields),
+        'options' => ''
+    ];
+}
+
+// Method to remove a field row from bulk edit
+public function removeEditFieldRow($index)
+{
+    $fieldData = $this->editingFields[$index];
+
+    // If it's an existing field (has ID), delete it from database
+    if ($fieldData['id']) {
+        try {
+            $field = TemplateFields::findOrFail($fieldData['id']);
+            FieldOptions::where('template_field_id', $fieldData['id'])->delete();
+            $field->delete();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error deleting field: ' . $e->getMessage());
+            return;
+        }
+    }
+
+    // Remove from array
+    unset($this->editingFields[$index]);
+    $this->editingFields = array_values($this->editingFields);
+
+    // Update order values
+    foreach ($this->editingFields as $key => $field) {
+        $this->editingFields[$key]['order'] = $key;
+    }
+}
+
+// Method to update multiple fields at once
+public function updateBulkFields()
+{
+    // Validate all fields
+    $rules = [];
+    foreach ($this->editingFields as $index => $field) {
+        $rules["editingFields.{$index}.name"] = 'required|string|min:2|max:255';
+        $rules["editingFields.{$index}.type"] = 'required|in:text,textarea,select,checkbox,radio,date,file';
+        $rules["editingFields.{$index}.order"] = 'integer|min:0';
+
+        if (in_array($field['type'], ['select', 'radio', 'checkbox'])) {
+            $rules["editingFields.{$index}.options"] = 'required|string';
+        }
+    }
+
+    $this->validate($rules, [
+        'editingFields.*.name.required' => 'Field name is required.',
+        'editingFields.*.name.min' => 'Field name must be at least 2 characters.',
+        'editingFields.*.type.required' => 'Field type is required.',
+        'editingFields.*.options.required' => 'Options are required for this field type.',
+    ]);
+
+    try {
+        foreach ($this->editingFields as $fieldData) {
+            if ($fieldData['id']) {
+                // Update existing field
+                $field = TemplateFields::findOrFail($fieldData['id']);
+                $field->update([
+                    'name' => $fieldData['name'],
+                    'type' => $fieldData['type'],
+                    'required' => $fieldData['required'],
+                    'order' => $fieldData['order'],
+                ]);
+
+                // Delete existing options and create new ones
+                FieldOptions::where('template_field_id', $field->id)->delete();
+
+                if (in_array($fieldData['type'], ['select', 'radio', 'checkbox']) && !empty($fieldData['options'])) {
+                    $options = array_filter(array_map('trim', explode("\n", $fieldData['options'])));
+
+                    foreach ($options as $option) {
+                        if (!empty($option)) {
+                            FieldOptions::create([
+                                'template_field_id' => $field->id,
+                                'value' => $option,
+                            ]);
+                        }
+                    }
+                }
+            } else {
+                // Create new field
+                $templateField = TemplateFields::create([
+                    'template_id' => $this->selectedTemplateId,
+                    'name' => $fieldData['name'],
+                    'type' => $fieldData['type'],
+                    'required' => $fieldData['required'],
+                    'order' => $fieldData['order'],
+                ]);
+
+                if (in_array($fieldData['type'], ['select', 'radio', 'checkbox']) && !empty($fieldData['options'])) {
+                    $options = array_filter(array_map('trim', explode("\n", $fieldData['options'])));
+
+                    foreach ($options as $option) {
+                        if (!empty($option)) {
+                            FieldOptions::create([
+                                'template_field_id' => $templateField->id,
+                                'value' => $option,
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->resetBulkEditForm();
+        session()->flash('message', 'Fields updated successfully!');
+
+    } catch (\Exception $e) {
+        session()->flash('error', 'Error updating fields: ' . $e->getMessage());
+    }
+}
+
+// Method to reset bulk field form
+public function resetBulkFieldForm()
+{
+    $this->bulkFields = [];
+    $this->showBulkFieldForm = false;
+}
+
+// Method to reset bulk edit form
+public function resetBulkEditForm()
+{
+    $this->editingFields = [];
+    $this->showBulkEditModal = false;
+}
+
+// Method to move field up in bulk edit
+public function moveFieldUp($index)
+{
+    if ($index > 0) {
+        $temp = $this->editingFields[$index];
+        $this->editingFields[$index] = $this->editingFields[$index - 1];
+        $this->editingFields[$index - 1] = $temp;
+
+        // Update order values
+        $this->editingFields[$index]['order'] = $index;
+        $this->editingFields[$index - 1]['order'] = $index - 1;
+    }
+}
+
+// Method to move field down in bulk edit
+public function moveFieldDown($index)
+{
+    if ($index < count($this->editingFields) - 1) {
+        $temp = $this->editingFields[$index];
+        $this->editingFields[$index] = $this->editingFields[$index + 1];
+        $this->editingFields[$index + 1] = $temp;
+
+        // Update order values
+        $this->editingFields[$index]['order'] = $index;
+        $this->editingFields[$index + 1]['order'] = $index + 1;
+    }
+}

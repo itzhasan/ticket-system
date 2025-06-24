@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('template_id')->constrained('templates')->onDelete('cascade');
             $table->string('name');
             $table->enum('type', ['text', 'textarea', 'select', 'checkbox', 'radio', 'date', 'file'])->default('text');
-            $table->text('options')->nullable();
             $table->boolean('required')->default(false);
             $table->integer('order')->default(0);
             $table->softDeletes();
