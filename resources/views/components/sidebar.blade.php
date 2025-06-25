@@ -63,7 +63,8 @@
                                     </svg>
                                 </button>
                                 @php
-                                    $ticketCount = App\Models\Ticket\Ticket::all()->count();
+                                    $access = App\Services\UserAccessService::for(Auth::user());
+                                    $ticketCount = $access->getTickets()->count();
                                 @endphp
                                 <div x-show="ticketOpen" x-transition class="flex mt-2 pl-8 space-x-4 items-center">
                                     <a href="{{ route('tickets') }}"

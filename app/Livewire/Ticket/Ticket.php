@@ -3,18 +3,14 @@
 namespace App\Livewire\Ticket;
 
 use App\Models\Department;
-use App\Models\Template\Category;
 use App\Models\Ticket\TicketDepartment;
 use App\Models\Ticket\TicketFieldsValue;
-use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Template\Template as TemplateTemplate;
-use App\Models\Ticket\Message as TicketMessage;
 use App\Models\Ticket\Ticket as TicketTicket;
-use GuzzleHttp\Psr7\Message;
+use App\Services\UserAccessService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Title;
 
 class Ticket extends Component
@@ -38,6 +34,18 @@ class Ticket extends Component
     public $categoryFilter = 'all';
     public $search = '';
 
+    public function getAccessProperty()
+    {
+        return UserAccessService::for(Auth::user());
+    }
+
+    public $priorityOptions = [
+        1 => 'Low',
+        2 => 'Medium',
+        3 => 'High',
+        4 => 'Critical'
+    ];
+
     public $priority = 'all';
     protected $rules = [
         'title' => 'required|string|min:3|max:255',
@@ -56,53 +64,63 @@ class Ticket extends Component
     #[Title('Tickets')]
     public function render()
     {
-        $tickets = TicketTicket::with(['category', 'createdBy', 'departments'])
-            ->when($this->search, function ($query) {
-                $query->where('title', 'like', '%' . $this->search . '%')->orWhere('id','like',$this->search . '%')
-                    ->orWhereHas('category', function ($q) {
-                        $q->where('name', 'like', '%' . $this->search . '%');
-                    })
-                ->orWhereHas('messages', function ($q) {
-                    $q->where('content', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('user', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->when($this->statusFilter !== 'all', function ($query) {
-                $query->where('status', $this->statusFilter);
-            })
-            ->when($this->categoryFilter !== 'all', function ($query) {
-                $query->where('category_id', $this->categoryFilter);
-            })
-            ->when($this->priority !== 'all', function ($query) {
-                $query->where('priority', $this->priority);
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        //there is a game in access ;)
+        $query = $this->access->getTickets()->with(['category', 'createdBy', 'departments']);
 
-        $categories = Category::all();
+        $query = $this->search($query);
+        $query = $this->filters($query);
+
+        $tickets = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        $categories = $this->access->getCategories();
         $departments = Department::all();
-        $templates = TemplateTemplate::with(['templateFields.fieldOptions'])
+        $templates = $this->access->getTemplates()->with(['templateFields.fieldOptions'])
             ->when($this->categoryId, function ($query) {
                 $query->where('category_id', $this->categoryId);
             })
             ->get();
 
-        $priorityOptions = [
-            1 => 'Low',
-            2 => 'Medium',
-            3 => 'High',
-            4 => 'Critical'
-        ];
 
         return view('livewire.ticket.ticket', [
             'tickets' => $tickets,
             'categories' => $categories,
             'departments' => $departments,
             'templates' => $templates,
-            'priorityOptions' => $priorityOptions,
+            'priorityOptions' => $this->priorityOptions,
         ]);
+    }
+
+    private function search($query)
+    {
+        return $query->when($this->search, function ($q) {
+        $searchTerm = $this->search;
+        $q->where(function ($subQuery) use ($searchTerm) {
+            $subQuery->where('title', 'like', '%' . $searchTerm . '%')
+                ->orWhere('id', 'like', $searchTerm . '%')
+                ->orWhereHas('category', function ($q2) use ($searchTerm) {
+                    $q2->where('name', 'like', '%' . $searchTerm . '%');
+                })
+                ->orWhereHas('messages', function ($q3) use ($searchTerm) {
+                    $q3->where('content', 'like', '%' . $searchTerm . '%');
+                })
+                ->orWhereHas('user', function ($q4) use ($searchTerm) {
+                    $q4->where('name', 'like', '%' . $searchTerm . '%');
+                });
+        });
+    });
+    }
+
+    private function filters($query)
+    {
+        return $query->when($this->statusFilter !== 'all', function ($q) {
+            $q->where('status', $this->statusFilter);
+        })
+            ->when($this->categoryFilter !== 'all', function ($q) {
+                $q->where('category_id', $this->categoryFilter);
+            })
+            ->when($this->priority !== 'all', function ($q) {
+                $q->where('priority', $this->priority);
+            });
     }
 
     public function updatedCategoryId()
