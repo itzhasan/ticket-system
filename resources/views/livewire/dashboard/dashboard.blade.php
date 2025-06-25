@@ -30,6 +30,16 @@
                     <p class="text-gray-600">{{ auth()->user()->created_at->format('M d, Y') }}</p>
                 </div>
             </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                <div class="bg-white shadow rounded-lg p-6 text-center">
+                    <h2 class="text-sm font-medium text-gray-500">Total Tickets</h2>
+                    <p class="mt-2 text-3xl font-semibold text-blue-600">{{ $totalTickets }}</p>
+                </div>
+                <div class="bg-white shadow rounded-lg p-6 text-center">
+                    <h2 class="text-sm font-medium text-gray-500">Pending Tickets</h2>
+                    <p class="mt-2 text-3xl font-semibold text-yellow-500">{{ $pendingTickets }}</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>

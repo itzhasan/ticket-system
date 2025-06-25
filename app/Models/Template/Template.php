@@ -39,13 +39,11 @@ class Template extends Model
         return $this->hasMany(TemplateFields::class)->where('required', false)->orderBy('order');
     }
 
-    // Count total fields
     public function getFieldsCountAttribute()
     {
         return $this->fields()->count();
     }
 
-    // Count required fields
     public function getRequiredFieldsCountAttribute()
     {
         return $this->fields()->where('required', true)->count();
@@ -55,7 +53,6 @@ class Template extends Model
         return $this->fields()->exists();
     }
 
-    // Get next order number for new field
     public function getNextFieldOrder()
     {
         return $this->fields()->max('order') + 1;

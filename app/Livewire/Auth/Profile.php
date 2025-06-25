@@ -2,16 +2,13 @@
 
 namespace App\Livewire\Auth;
 
-use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class Profile extends Component
 {
    public $name;
     public $email;
-    public $current_password;
     public $new_password;
     public $new_password_confirmation;
     public $showPasswordSection = false;
@@ -27,14 +24,12 @@ class Profile extends Component
                 'email',
                 'max:255',
             ],
-            'current_password' => 'required_with:new_password',
             'new_password' => 'nullable|min:8|confirmed',
         ];
     }
 
     protected $messages = [
-        'new_password.confirmed' => 'The new password confirmation does not match.',
-        'current_password.required_with' => 'Current password is required when setting a new password.',
+        'new_password.confirmed' => 'The new password confirmation does not match.'
     ];
 
     public function mount()
@@ -57,14 +52,7 @@ class Profile extends Component
         $this->validate($rules);
 
         try {
-            $user = User::find(Auth::id());
-            // Verify current password if changing password
-            if ($this->new_password) {
-                if (!Hash::check($this->current_password, $user->password)) {
-                    $this->addError('current_password', 'The current password is incorrect.');
-                    return;
-                }
-            }
+            $user = Auth::user();
 
             $updateData = [
                 'name' => $this->name,
@@ -72,12 +60,11 @@ class Profile extends Component
             ];
 
             if ($this->new_password) {
-                $updateData['password'] = Hash::make($this->new_password);
+                $updateData['password'] = bcrypt($this->new_password);
             }
-
             $user->update($updateData);
 
-            $this->reset(['current_password', 'new_password', 'new_password_confirmation']);
+            $this->reset(['new_password', 'new_password_confirmation']);
             $this->showPasswordSection = false;
 
             $this->successMessage = 'Profile updated successfully!';
@@ -94,7 +81,7 @@ class Profile extends Component
         $this->showPasswordSection = !$this->showPasswordSection;
 
         if (!$this->showPasswordSection) {
-            $this->reset(['current_password', 'new_password', 'new_password_confirmation']);
+            $this->reset(['new_password', 'new_password_confirmation']);
         }
     }
 

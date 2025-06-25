@@ -15,7 +15,6 @@ Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-// Guest routes (only accessible when not logged in)
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
 });
@@ -36,9 +35,9 @@ Route::middleware('auth')->group(function () {
     })->name('logout');
 
     // Admin only routes
-    Route::middleware('admin')->group(function () {
-        Route::get('/admin/users', UserManagement::class)->name('admin.users');
-        Route::get('/admin/categories', Category::class)->name('categories');
-        Route::get('admin/templates/{categoryId}', Template::class)->name('admin.templates');
+    Route::middleware('admin')->prefix('/admin')->group(function () {
+        Route::get('/users', UserManagement::class)->name('admin.users');
+        Route::get('/categories', Category::class)->name('categories');
+        Route::get('/templates/{categoryId}', Template::class)->name('admin.templates');
     });
 });

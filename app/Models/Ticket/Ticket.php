@@ -45,4 +45,8 @@ class Ticket extends Model
     {
         return $this->belongsTo(TicketDepartment::class);
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
 }

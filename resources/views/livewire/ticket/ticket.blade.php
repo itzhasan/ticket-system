@@ -26,7 +26,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <input wire:model.live="search" type="text" placeholder="Search tickets..."
+                <input wire:model.live.debounce.500ms="search" type="text" placeholder="Search tickets..."
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>

@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Template\Category;
 use App\Models\Ticket\TicketDepartment;
 use App\Models\Ticket\TicketFieldsValue;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Template\Template as TemplateTemplate;
@@ -57,7 +58,16 @@ class Ticket extends Component
     {
         $tickets = TicketTicket::with(['category', 'createdBy', 'departments'])
             ->when($this->search, function ($query) {
-                $query->where('title', 'like', '%' . $this->search . '%');
+                $query->where('title', 'like', '%' . $this->search . '%')->orWhere('id','like',$this->search . '%')
+                    ->orWhereHas('category', function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    })
+                ->orWhereHas('messages', function ($q) {
+                    $q->where('content', 'like', '%' . $this->search . '%');
+                })
+                ->orWhereHas('user', function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%');
+                });
             })
             ->when($this->statusFilter !== 'all', function ($query) {
                 $query->where('status', $this->statusFilter);
