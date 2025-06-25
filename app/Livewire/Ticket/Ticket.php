@@ -11,6 +11,7 @@ use Livewire\WithPagination;
 use App\Models\Template\Template as TemplateTemplate;
 use App\Models\Ticket\Message as TicketMessage;
 use App\Models\Ticket\Ticket as TicketTicket;
+use GuzzleHttp\Psr7\Message;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Title;
@@ -29,12 +30,14 @@ class Ticket extends Component
     public $departmentIds;
     public $templateFields = [];
     public $fieldValues = [];
+    public $prioritySelected;
 
     // Filter properties
     public $statusFilter = 'all';
     public $categoryFilter = 'all';
     public $search = '';
 
+    public $priority = 'all';
     protected $rules = [
         'title' => 'required|string|min:3|max:255',
         'categoryId' => 'required|exists:categories,id',
@@ -62,6 +65,9 @@ class Ticket extends Component
             ->when($this->categoryFilter !== 'all', function ($query) {
                 $query->where('category_id', $this->categoryFilter);
             })
+            ->when($this->priority !== 'all', function ($query) {
+                $query->where('priority', $this->priority);
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -73,11 +79,19 @@ class Ticket extends Component
             })
             ->get();
 
+        $priorityOptions = [
+            1 => 'Low',
+            2 => 'Medium',
+            3 => 'High',
+            4 => 'Critical'
+        ];
+
         return view('livewire.ticket.ticket', [
             'tickets' => $tickets,
             'categories' => $categories,
             'departments' => $departments,
             'templates' => $templates,
+            'priorityOptions' => $priorityOptions,
         ]);
     }
 
@@ -157,16 +171,11 @@ class Ticket extends Component
             }
         }
 
-        // Validate departments
-        if (empty($this->departmentIds)) {
-            $this->addError('departmentIds', 'At least one department must be selected.');
-            return;
-        }
-
         try {
             // Create the ticket
             $ticket = TicketTicket::create([
                 'title' => $this->title,
+                'priority' => $this->prioritySelected ?? 'Low',
                 'category_id' => $this->categoryId,
                 'created_by_id' => Auth::id(),
                 'status' => 'pending',
@@ -185,7 +194,6 @@ class Ticket extends Component
                 }
             }
 
-            // Assign department
             TicketDepartment::create([
                 'ticket_id' => $ticket->id,
                 'department_id' => $this->departmentIds,

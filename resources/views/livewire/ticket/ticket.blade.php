@@ -48,6 +48,15 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Priority {{$priority}}</label>
+                <select wire:model.live="priority" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <option value="all">All Properties</option>
+                    @foreach($priorityOptions as $priority)
+                        <option value="{{ $priority }}">{{ $priority }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
     </div>
 
@@ -60,6 +69,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departments</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
@@ -83,7 +93,21 @@
                                 {{ ucfirst(str_replace('_', ' ', $ticket->status)) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $ticket->createdBy->name }}</td>
+                        @php
+                            $priorityColors = [
+                                'Low' => 'bg-green-100 text-green-800',
+                                'Medium' => 'bg-yellow-100 text-yellow-800',
+                                'High' => 'bg-orange-100 text-orange-800',
+                                'Critical' => 'bg-red-100 text-red-800',
+                            ];
+                        @endphp
+
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {{ $priorityColors[$ticket->priority] ?? 'bg-gray-100 text-gray-800' }}">
+                                {{ $ticket->priority }}
+                            </span>
+                        </th>                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $ticket->createdBy->name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             @foreach($ticket->departments as $dept)
                                 <span class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full mr-1">
@@ -146,6 +170,20 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('title') border-red-500 @enderror">
                             @error('title') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Priority <span class="text-red-500"></span></label>
+                            <select wire:model.live="prioritySelected"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('categoryId') border-red-500 @enderror">
+                                <option value="">Select Priority</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Critical">Critical</option>
+
+                            </select>
+                            @error('categoryId') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+
 
                         <!-- Category Field -->
                         <div class="mb-4">
@@ -166,7 +204,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Template</label>
                                 <select wire:model.live="templateId"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('templateId') border-red-500 @enderror">
-                                    <option value="">Select Template (Optional)</option>
+                                    <option value="">Select Template</option>
                                     @foreach($templates as $template)
                                         <option value="{{ $template->id }}">{{ $template->name }}</option>
                                     @endforeach

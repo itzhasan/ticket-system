@@ -60,6 +60,7 @@ class TicketById extends Component
 
         TicketMessage::create([
             'user_id' => Auth::id(),
+            'type' => 'user',
             'ticket_id' => $this->id,
             'content' => $this->newMessage
         ]);
@@ -85,31 +86,52 @@ class TicketById extends Component
             'department_id' => $departmentId,
         ]);
 
+        $department = Department::find($departmentId);
+
+        \App\Models\Ticket\Message::create([
+            'user_id' => Auth::id(),
+            'type'=> 'system',
+            'ticket_id' => $this->id,
+            'content' => Auth::user()->name . ' assigned '. $department->name . ' Department successfully.',
+        ]);
+
         $this->currentDepartment = Department::find($departmentId);
 
         session()->flash('message', 'Ticket forwarded successfully!');
     }
-public function updateTicketStatus($ticketId, $status)
-{
-    $ticket = Ticket::find($ticketId);
+    public function updateTicketStatus($ticketId, $status)
+    {
+        $ticket = Ticket::find($ticketId);
 
-    if (!$ticket) {
-        session()->flash('error', 'Ticket not found.');
-        return;
+        if (!$ticket) {
+            session()->flash('error', 'Ticket not found.');
+            return;
+        }
+
+        //Validate the status
+        $allowedStatuses = ['pending', 'in_progress', 'resolved', 'closed'];
+        if (!in_array($status, $allowedStatuses)) {
+            session()->flash('error', 'Invalid status selected.');
+            return;
+        }
+
+        $ticket->update(['status' => $status]);
+
+        session()->flash('message', 'Ticket status updated successfully!');
     }
+public function updateTicketPriority($ticketId, $priority)
+    {
+        $ticket = Ticket::find($ticketId);
 
-    // Optionally: Validate the status
-    $allowedStatuses = ['pending', 'in_progress', 'resolved', 'closed'];
-    if (!in_array($status, $allowedStatuses)) {
-        session()->flash('error', 'Invalid status selected.');
-        return;
+        if (!$ticket) {
+            session()->flash('error', 'Ticket not found.');
+            return;
+        }
+
+        $ticket->update(['priority' => $priority]);
+
+        session()->flash('message', 'Ticket priority updated successfully!');
     }
-
-    $ticket->update(['status' => $status]);
-
-    session()->flash('message', 'Ticket status updated successfully!');
-}
-
 
 
     #[Title('Ticket Details')]

@@ -41,7 +41,6 @@ class Template extends Component
         'checkbox' => 'Checkbox',
         'radio' => 'Radio Buttons',
         'date' => 'Date Picker',
-        'file' => 'File Upload'
     ];
 
     protected $rules = [
@@ -50,13 +49,13 @@ class Template extends Component
         'fieldName' => 'required|string|min:2|max:255',
         'fieldType' => 'required|in:text,textarea,select,checkbox,radio,date,file',
         'fieldOrder' => 'integer|min:0',
-        'fieldOptions.*' => 'nullable|string|max:255', // Validate each option
+        'fieldOptions.*' => 'nullable|string|max:255',
     ];
 
     public function mount($categoryId)
     {
         $this->categoryId = $categoryId;
-        $this->fieldOptions = ['']; // Initialize with one empty option
+        $this->fieldOptions = [''];
     }
 
     public function resetForm()
@@ -71,7 +70,7 @@ class Template extends Component
     {
         $this->fieldName = '';
         $this->fieldType = 'text';
-        $this->fieldOptions = ['']; // Reset to single empty option
+        $this->fieldOptions = ['']; 
         $this->fieldRequired = false;
         $this->fieldOrder = 0;
         $this->showFieldForm = false;
