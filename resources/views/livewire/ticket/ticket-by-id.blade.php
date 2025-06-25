@@ -109,7 +109,6 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- Left Column - Ticket Details -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Ticket Information</h2>
@@ -160,15 +159,11 @@
                 @endif
             </div>
 
-            <!-- Right Column - Messages -->
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-lg shadow-sm border h-full flex flex-col">
-                    <!-- Messages Header -->
                     <div class="px-6 py-4 border-b">
                         <h2 class="text-lg font-medium text-gray-900">Messages</h2>
                     </div>
-
-                    <!-- Messages Container -->
                     <div
                         class="flex-1 px-4 py-6 overflow-y-auto max-h-96 min-h-96 bg-gradient-to-b from-gray-50 to-white">
                         <div class="space-y-6">
@@ -179,7 +174,6 @@
                                     @else {{ auth()->user()->id == $message['user_id'] ? 'justify-end' : 'justify-start' }}
                                     @endif">
                                             <div class="max-w-xs lg:max-w-md xl:max-w-lg">
-                                                <!-- Message bubble -->
                                                 <div class="group relative">
                                                     <div class="px-4 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md
                                                 @if($message['type'] === 'system')
@@ -204,8 +198,6 @@
                                                                 {{ $message['content'] }}</p>
                                                         @endif
                                                     </div>
-
-                                                    <!-- Message tail -->
                                                     @if($message['type'] !== 'system')
                                                                                 <div class="absolute top-4
                                                                                 {{ auth()->user()->id == $message['user_id'] ? '-right-1' : '-left-1' }}">
@@ -219,12 +211,10 @@
                                                 </div>
 
                                                 @if($message['type'] !== 'system')
-                                                    <!-- Message info -->
                                                     <div
                                                         class="mt-2 px-2 {{ auth()->user()->id == $message['user_id'] ? 'text-right' : 'text-left' }}">
                                                         <div
                                                             class="flex items-center space-x-2 {{ auth()->user()->id == $message['user_id'] ? 'justify-end' : 'justify-start' }}">
-                                                            <!-- Message metadata -->
                                                             <span class="text-xs text-gray-500
                                                             {{ auth()->user()->id == $message['user_id'] ? 'order-1' : 'order-2' }}">
                                                                 <span class="font-medium">{{ $message['user']['name'] }}</span>
@@ -256,8 +246,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Message Input -->
                 <div class="px-6 py-4 border-t">
                     <form wire:submit.prevent="sendMessage" class="flex space-x-3">
                         <div class="flex-1">

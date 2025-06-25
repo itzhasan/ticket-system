@@ -70,7 +70,7 @@ class Template extends Component
     {
         $this->fieldName = '';
         $this->fieldType = 'text';
-        $this->fieldOptions = ['']; 
+        $this->fieldOptions = [''];
         $this->fieldRequired = false;
         $this->fieldOrder = 0;
         $this->showFieldForm = false;
@@ -79,7 +79,6 @@ class Template extends Component
         $this->resetValidation();
     }
 
-    // Add new option input
     public function addOption()
     {
         $this->fieldOptions[] = '';
@@ -90,11 +89,10 @@ class Template extends Component
     {
         if (count($this->fieldOptions) > 1) {
             unset($this->fieldOptions[$index]);
-            $this->fieldOptions = array_values($this->fieldOptions); // Re-index array
+            $this->fieldOptions = array_values($this->fieldOptions);
         }
     }
 
-    // Update field type and reset options if needed
     public function updatedFieldType()
     {
         if (!in_array($this->fieldType, ['select', 'radio', 'checkbox'])) {
@@ -153,7 +151,6 @@ class Template extends Component
         session()->flash('message', 'Template deleted successfully!');
     }
 
-    // Field Management Methods
     public function showTemplateFields($templateId)
     {
         $this->selectedTemplateId = $templateId;
@@ -169,7 +166,6 @@ class Template extends Component
             'fieldOptions.*' => 'nullable|string|max:255',
         ]);
 
-        // Validate options for select/radio/checkbox types
         if (in_array($this->fieldType, ['select', 'radio', 'checkbox'])) {
             $filteredOptions = array_filter($this->fieldOptions, function($option) {
                 return !empty(trim($option));
@@ -181,7 +177,6 @@ class Template extends Component
             }
         }
 
-        // Create the template field
         $templateField = TemplateFields::create([
             'template_id' => $this->selectedTemplateId,
             'name' => $this->fieldName,
@@ -190,7 +185,6 @@ class Template extends Component
             'order' => $this->fieldOrder,
         ]);
 
-        // Create field options if the field type requires them
         if (in_array($this->fieldType, ['select', 'radio', 'checkbox'])) {
             $filteredOptions = array_filter($this->fieldOptions, function($option) {
                 return !empty(trim($option));
@@ -217,7 +211,6 @@ class Template extends Component
         $this->fieldRequired = $field->required;
         $this->fieldOrder = $field->order;
 
-        // Convert field options to array format
         if ($field->fieldOptions->isNotEmpty()) {
             $this->fieldOptions = $field->fieldOptions->pluck('value')->toArray();
         } else {
@@ -249,7 +242,6 @@ class Template extends Component
 
         $field = TemplateFields::findOrFail($this->editFieldId);
 
-        // Update the template field
         $field->update([
             'name' => $this->fieldName,
             'type' => $this->fieldType,
@@ -257,10 +249,8 @@ class Template extends Component
             'order' => $this->fieldOrder,
         ]);
 
-        // Delete existing options
         FieldOption::where('template_field_id', $field->id)->delete();
 
-        // Create new field options if the field type requires them
         if (in_array($this->fieldType, ['select', 'radio', 'checkbox'])) {
             $filteredOptions = array_filter($this->fieldOptions, function($option) {
                 return !empty(trim($option));
@@ -282,16 +272,13 @@ class Template extends Component
     {
         $field = TemplateFields::findOrFail($fieldId);
 
-        // Delete associated field options first (if using cascade, this might be automatic)
         FieldOption::where('template_field_id', $fieldId)->delete();
 
-        // Delete the field
         $field->delete();
 
         session()->flash('message', 'Field deleted successfully!');
     }
 
-    // Add this property to load template fields with their options
     public function getSelectedTemplateFieldsProperty()
     {
         if (!$this->selectedTemplateId) {

@@ -108,7 +108,6 @@ class TicketById extends Component
             return;
         }
 
-        //Validate the status
         $allowedStatuses = ['pending', 'in_progress', 'resolved', 'closed'];
         if (!in_array($status, $allowedStatuses)) {
             session()->flash('error', 'Invalid status selected.');

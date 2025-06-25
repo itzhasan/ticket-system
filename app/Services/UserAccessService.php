@@ -49,23 +49,6 @@ class UserAccessService
         return Template::whereIn('category_id', $this->getAllowedCategoryIds());
     }
 
-    public function hasAccessToTicket(Ticket $ticket): bool
-    {
-        if ($this->user->role !== 'user') {
-            return true;
-        }
-
-        return in_array($ticket->category_id, $this->getAllowedCategoryIds());
-    }
-
-    public function hasAccessToTemplate(Template $template): bool
-    {
-        if ($this->user->role !== 'user') {
-            return true;
-        }
-
-        return in_array($template->category_id, $this->getAllowedCategoryIds());
-    }
     public function getCategories()
     {
         if ($this->user->role !== 'user') {

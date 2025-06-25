@@ -227,7 +227,6 @@
     @endif
 
    <!-- Fields Management Modal -->
-    <!-- Fields Management Modal -->
 @if($showFieldsModal)
 <div class="fixed inset-0 bg-transparent bg-opacity-50 overflow-y-auto h-full w-full z-50">
     <div class="relative top-10 mx-auto p-5 border w-11/12 lg:w-4/5 xl:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">

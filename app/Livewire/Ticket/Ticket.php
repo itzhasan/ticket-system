@@ -152,7 +152,6 @@ class Ticket extends Component
                     $this->fieldValues[$field['id']] = '';
                 }
 
-                // Auto-select the template's department
                 $this->departmentIds = $template->department_id;
             }
         } else {
@@ -176,7 +175,6 @@ class Ticket extends Component
 
     public function createTicket()
     {
-        // Basic validation
         $this->validate([
             'title' => 'required|string|min:3|max:255',
             'categoryId' => 'required|exists:categories,id',
@@ -193,14 +191,13 @@ class Ticket extends Component
                 }
             }
 
-            // If there are field validation errors, don't proceed
+            // If there are field validation errors don't proceed
             if ($this->getErrorBag()->has('fieldValues.*')) {
                 return;
             }
         }
 
         try {
-            // Create the ticket
             $ticket = TicketTicket::create([
                 'title' => $this->title,
                 'priority' => $this->prioritySelected ?? 'Low',
@@ -209,7 +206,6 @@ class Ticket extends Component
                 'status' => 'pending',
             ]);
 
-            // Save template field values
             if ($this->templateId && !empty($this->templateFields)) {
                 foreach ($this->fieldValues as $fieldId => $value) {
                     if (!empty($value) && trim($value) !== '') {
@@ -230,7 +226,6 @@ class Ticket extends Component
 
             session()->flash('message', 'Ticket created successfully!');
 
-            // Reset form and close modal
             $this->resetForm();
             $this->closeCreateModal();
             $this->resetPage();
