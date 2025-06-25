@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Auth\Login;
+use App\Livewire\Auth\Profile;
 use App\Livewire\Dashboard\Dashboard;
 use App\Livewire\Template\Category;
 use App\Livewire\Template\Template;
@@ -24,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/tickets', Ticket::class)->name('tickets');
     Route::get('/ticket/{id}', TicketById::class)->name('ticket.view');
+    Route::get('/profile', Profile::class)->name('profile');
 
     // Logout route
     Route::post('/logout', function () {

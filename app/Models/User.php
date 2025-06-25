@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Models\Template\Category;
 use App\Models\Template\UserCategory;
 use App\Models\Ticket\Message;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -64,5 +65,10 @@ class User extends Authenticatable
     public function userCategory()
     {
         return $this->hasMany(UserCategory::class);
+    }
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'user_categories')
+                    ->withTimestamps();
     }
 }
