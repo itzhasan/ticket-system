@@ -93,21 +93,21 @@ class Ticket extends Component
     private function search($query)
     {
         return $query->when($this->search, function ($q) {
-        $searchTerm = $this->search;
-        $q->where(function ($subQuery) use ($searchTerm) {
-            $subQuery->where('title', 'like', '%' . $searchTerm . '%')
-                ->orWhere('id', 'like', $searchTerm . '%')
-                ->orWhereHas('category', function ($q2) use ($searchTerm) {
-                    $q2->where('name', 'like', '%' . $searchTerm . '%');
-                })
-                ->orWhereHas('messages', function ($q3) use ($searchTerm) {
-                    $q3->where('content', 'like', '%' . $searchTerm . '%');
-                })
-                ->orWhereHas('user', function ($q4) use ($searchTerm) {
-                    $q4->where('name', 'like', '%' . $searchTerm . '%');
-                });
+            $searchTerm = $this->search;
+            $q->where(function ($subQuery) use ($searchTerm) {
+                $subQuery->where('title', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('id', 'like', $searchTerm . '%')
+                    ->orWhereHas('category', function ($q2) use ($searchTerm) {
+                        $q2->where('name', 'like', '%' . $searchTerm . '%');
+                    })
+                    ->orWhereHas('messages', function ($q3) use ($searchTerm) {
+                        $q3->where('content', 'like', '%' . $searchTerm . '%');
+                    })
+                    ->orWhereHas('user', function ($q4) use ($searchTerm) {
+                        $q4->where('name', 'like', '%' . $searchTerm . '%');
+                    });
+            });
         });
-    });
     }
 
     private function filters($query)

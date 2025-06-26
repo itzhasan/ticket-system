@@ -37,7 +37,16 @@ class UserAccessService
             return Ticket::query();
         }
 
-        return Ticket::whereIn('category_id', $this->getAllowedCategoryIds());
+        $userDepartmentId = $this->user->department_id;
+
+        return Ticket::where(function ($query) use ($userDepartmentId) {
+            $query->whereIn('category_id', $this->getAllowedCategoryIds())
+                ->orWhereIn('id', function ($subQuery) use ($userDepartmentId) {
+                    $subQuery->select('ticket_id')
+                        ->from('ticket_departments')
+                        ->where('department_id', $userDepartmentId);
+                });
+        });
     }
 
     public function getTemplates()
