@@ -34,7 +34,6 @@ class Ticket extends Component
     public $statusFilter = 'all';
     public $categoryFilter = 'all';
     public $search = '';
-    public $template;
 
     public function getAccessProperty()
     {
@@ -61,7 +60,6 @@ class Ticket extends Component
     public function mount()
     {
         $this->resetForm();
-        $this->template = TemplateTemplate::where('id',$this->templateId);
     }
 
     #[Title('Tickets')]
@@ -233,6 +231,7 @@ class Ticket extends Component
                             }
                         }
                     } else {
+                        // For other field types - save as single record
                         if (!empty($value) && trim($value) !== '') {
                             TicketFieldsValue::create([
                                 'ticket_id' => $ticket->id,
@@ -243,17 +242,13 @@ class Ticket extends Component
                     }
                 }
             }
-            $templates = $this->access->getTemplates()->with(['templateFields.fieldOptions'])
-            ->when($this->categoryId, function ($query) {
-                $query->where('category_id', $this->categoryId);
-            })
-            ->get();
 
-            TicketDepartment::create([
-                'ticket_id' => $ticket->id,
-                'department_id' => $this->template->department_id,
-            ]);
-
+            if ($this->departmentIds) {
+                TicketDepartment::create([
+                    'ticket_id' => $ticket->id,
+                    'department_id' => $this->departmentIds,
+                ]);
+            }
 
             DB::commit();
 
