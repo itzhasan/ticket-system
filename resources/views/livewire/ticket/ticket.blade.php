@@ -285,6 +285,9 @@
                                             @elseif($field['type'] === 'date')
                                                 <input wire:model="fieldValues.{{ $field['id'] }}" type="date"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
+                                            @elseif($field['type'] === 'datetime-local')
+                                                <input wire:model="fieldValues.{{ $field['id'] }}" type="datetime-local"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
 
                                             @elseif($field['type'] === 'file')
                                                 <input wire:model="fieldValues.{{ $field['id'] }}" type="file"

@@ -80,7 +80,8 @@
                                 Medium</option>
                             <option value="High" {{ $selectedTicket->priority === 'High' ? 'selected' : '' }}>
                                 High</option>
-                            <option value="Critical" {{ $selectedTicket->priority === 'Critical' ? 'selected' : '' }}>Critical
+                            <option value="Critical" {{ $selectedTicket->priority === 'Critical' ? 'selected' : '' }}>
+                                Critical
                             </option>
                         </select>
                     </div>
@@ -140,7 +141,8 @@
                                     @if($fieldValuesGroup->count() > 1)
                                         <div class="flex flex-wrap gap-2 mt-1">
                                             @foreach($fieldValuesGroup as $value)
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                     {{ $value->value }}
                                                 </span>
                                             @endforeach
@@ -160,31 +162,31 @@
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-lg shadow-sm border h-full flex flex-col">
                     <div class="px-6 py-4 border-b">
-                        <h2 class="text-lg font-medium text-gray-900">Messages</h2>
+                        <h2 class="text-xl font-semibold text-gray-900">Messages</h2>
                     </div>
-                    <div
-                        class="flex-1 px-4 py-6 overflow-y-auto max-h-96 min-h-96 bg-gradient-to-b from-gray-50 to-white">
-                        <div class="space-y-6">
+                    <div class="h-[500px] px-6 py-6 overflow-y-auto bg-gradient-to-b from-gray-50 to-white"
+                        style="scroll-behavior: smooth;">
+                        <div class="space-y-4 min-h-full flex flex-col justify-end">
                             @if(count($messages) > 0)
                                 @foreach($messages as $message)
                                         <div class="flex
                                     @if($message['type'] === 'system') justify-center
                                     @else {{ auth()->user()->id == $message['user_id'] ? 'justify-end' : 'justify-start' }}
                                     @endif">
-                                            <div class="max-w-xs lg:max-w-md xl:max-w-lg">
+                                            <div class="max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl">
                                                 <div class="group relative">
-                                                    <div class="px-4 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md
+                                                    <div class="px-5 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md
                                                 @if($message['type'] === 'system')
                                                     bg-amber-100 border border-amber-200 text-amber-800 text-center mx-auto max-w-fit
                                                 @else
-                                                    {{ auth()->user()->id == $message['user_id']
+                                                                            {{ auth()->user()->id == $message['user_id']
                                                     ? 'bg-blue-500 text-white shadow-blue-100 hover:bg-blue-600'
                                                     : 'bg-white border border-gray-200 text-gray-900 hover:border-gray-300' }}
                                                 @endif">
 
                                                         @if($message['type'] === 'system')
                                                             <div class="flex items-center justify-center space-x-2">
-                                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                                     <path fill-rule="evenodd"
                                                                         d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                                                                         clip-rule="evenodd"></path>
@@ -192,8 +194,9 @@
                                                                 <p class="text-sm font-medium">{{ $message['content'] }}</p>
                                                             </div>
                                                         @else
-                                                            <p class="text-sm leading-relaxed whitespace-pre-wrap">
-                                                                {{ $message['content'] }}</p>
+                                                            <p class="text-sm lg:text-base leading-relaxed whitespace-pre-wrap">
+                                                                {{ $message['content'] }}
+                                                            </p>
                                                         @endif
                                                     </div>
                                                     @if($message['type'] !== 'system')
@@ -213,7 +216,7 @@
                                                         class="mt-2 px-2 {{ auth()->user()->id == $message['user_id'] ? 'text-right' : 'text-left' }}">
                                                         <div
                                                             class="flex items-center space-x-2 {{ auth()->user()->id == $message['user_id'] ? 'justify-end' : 'justify-start' }}">
-                                                            <span class="text-xs text-gray-500
+                                                            <span class="text-xs lg:text-sm text-gray-500
                                                             {{ auth()->user()->id == $message['user_id'] ? 'order-1' : 'order-2' }}">
                                                                 <span class="font-medium">{{ $message['user']['name'] }}</span>
                                                                 <span class="mx-1">•</span>
@@ -226,36 +229,37 @@
                                         </div>
                                 @endforeach
                             @else
-                                <div class="flex flex-col justify-center items-center h-32 space-y-4">
-                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor"
+                                <div class="flex flex-col justify-center items-center h-40 space-y-4 transform rotate-180">
+                                    <div
+                                        class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center transform rotate-180">
+                                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
                                             </path>
                                         </svg>
                                     </div>
-                                    <div class="text-center">
-                                        <p class="text-gray-500 text-sm font-medium">No messages yet</p>
-                                        <p class="text-gray-400 text-xs mt-1">Start the conversation to begin chatting!</p>
+                                    <div class="text-center transform rotate-180">
+                                        <p class="text-gray-500 text-base font-medium">No messages yet</p>
+                                        <p class="text-gray-400 text-sm mt-1">Start the conversation to begin chatting!</p>
                                     </div>
                                 </div>
                             @endif
                         </div>
                     </div>
-                </div>
-                <div class="px-6 py-4 border-t">
-                    <form wire:submit.prevent="sendMessage" class="flex space-x-3">
-                        <div class="flex-1">
-                            <input wire:model="newMessage" type="text" placeholder="Type your message..."
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                required>
-                        </div>
-                        <button type="submit"
-                            class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                            Send
-                        </button>
-                    </form>
+                    <div class="px-6 py-4 border-t">
+                        <form wire:submit.prevent="sendMessage" class="flex space-x-4">
+                            <div class="flex-1">
+                                <input wire:model="newMessage" type="text" placeholder="Type your message..."
+                                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                    required>
+                            </div>
+                            <button type="submit"
+                                class="px-8 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                                Send
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

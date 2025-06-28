@@ -29,6 +29,9 @@ class TicketById extends Component
             ->latest()
             ->first();
 
+        #$this->currentDepartment = Department::where('id', $this->selectedTicket->assigned_department_id)->first();
+
+
         $this->currentDepartment = $lastDepartment ? $lastDepartment->department : null;
     }
 
@@ -88,7 +91,7 @@ class TicketById extends Component
 
         $department = Department::find($departmentId);
 
-        \App\Models\Ticket\Message::create([
+        TicketMessage::create([
             'user_id' => Auth::id(),
             'type' => 'system',
             'ticket_id' => $this->id,

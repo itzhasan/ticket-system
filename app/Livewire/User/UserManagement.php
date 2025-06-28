@@ -63,22 +63,20 @@ class UserManagement extends Component
 
     public function deleteUser($userId)
     {
-        $user = User::find($userId);
-        if ($user && $user->id !== Auth::user()->id) {
-            $user->delete();
-            session()->flash('message', 'User deleted successfully!');
-        }
+        User::where('id', '!=', Auth::id())
+        ->where('id', $userId)
+        ->delete();
+        session()->flash('message', 'User deleted successfully!');
     }
     public function updateDepartment($departmentId, $userId){
         try {
-            $user = User::find($userId);
-            if ($user) {
-                $user->department_id = $departmentId;
-                $user->save();
-                session()->flash('message', 'User department updated successfully!');
-            } else {
-                session()->flash('error', 'User not found.');
-            }
+             User::where('id', $userId)->update(
+                [
+                    'department_id' => $departmentId
+                ]
+            );
+            session()->flash('message', 'User department updated successfully!');
+
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to update user department: ' . $e->getMessage());
         }

@@ -27,7 +27,7 @@ class Template extends Component
     public $selectedTemplateId;
     public $fieldName = '';
     public $fieldType = 'text';
-    public $fieldOptions = []; // Changed from string to array
+    public $fieldOptions = [];
     public $fieldRequired = false;
     public $fieldOrder = 0;
     public $editFieldId;
@@ -41,13 +41,14 @@ class Template extends Component
         'checkbox' => 'Checkbox',
         'radio' => 'Radio Buttons',
         'date' => 'Date Picker',
+        'time' => 'Date and Time Picker',
     ];
 
     protected $rules = [
         'name' => 'required|string|min:3|max:255',
         'departmentId' => 'required|exists:departments,id',
         'fieldName' => 'required|string|min:2|max:255',
-        'fieldType' => 'required|in:text,textarea,select,checkbox,radio,date,file',
+        'fieldType' => 'required|in:text,textarea,select,checkbox,radio,date,time',
         'fieldOrder' => 'integer|min:0',
         'fieldOptions.*' => 'nullable|string|max:255',
     ];
@@ -84,7 +85,6 @@ class Template extends Component
         $this->fieldOptions[] = '';
     }
 
-    // Remove option input
     public function removeOption($index)
     {
         if (count($this->fieldOptions) > 1) {
@@ -224,7 +224,7 @@ class Template extends Component
     {
         $this->validate([
             'fieldName' => 'required|string|min:2|max:255',
-            'fieldType' => 'required|in:text,textarea,select,checkbox,radio,date,file',
+            'fieldType' => 'required|in:text,textarea,select,checkbox,radio,date,file,datetime-local',
             'fieldOrder' => 'integer|min:0',
             'fieldOptions.*' => 'nullable|string|max:255',
         ]);
