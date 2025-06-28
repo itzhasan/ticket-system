@@ -148,7 +148,6 @@
                                 </div>
 
                                 <button wire:click="deleteTicket({{ $ticket->id }})"
-                                    onclick="return confirm('Are you sure you want to delete this ticket?')"
                                     class="text-red-600 hover:text-red-900">Delete</button>
                             </div>
                         </td>
@@ -273,17 +272,16 @@
 
                                             @elseif($field['type'] === 'checkbox')
                                                 <div class="space-y-2">
-                                                    @if(!empty($field['options']))
-                                                        @foreach($field['options'] as $option)
-                                                            <label class="flex items-center">
-                                                                <input type="checkbox" wire:model="fieldValues.{{ $field['id'] }}" value="{{ $option }}"
-                                                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                                                <span class="ml-2 text-sm text-gray-700">{{ $option }}</span>
-                                                            </label>
-                                                        @endforeach
-                                                    @endif
+                                                    @foreach($field['options'] as $option)
+                                                        <label class="flex items-center">
+                                                            <input type="checkbox"
+                                                                wire:model="fieldValues.{{ $field['id'] }}"
+                                                                value="{{ $option }}"
+                                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                            <span class="ml-2 text-sm text-gray-700">{{ $option }}</span>
+                                                        </label>
+                                                    @endforeach
                                                 </div>
-
                                             @elseif($field['type'] === 'date')
                                                 <input wire:model="fieldValues.{{ $field['id'] }}" type="date"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">

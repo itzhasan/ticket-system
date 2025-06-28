@@ -9,6 +9,7 @@ use App\Livewire\Template\Category;
 use App\Livewire\Template\Template;
 use App\Livewire\Ticket\Ticket;
 use App\Livewire\Ticket\TicketById;
+use App\Livewire\User\Department;
 use App\Livewire\User\UserManagement;
 
 Route::get('/', function () {
@@ -37,6 +38,7 @@ Route::middleware('auth')->group(function () {
     // Admin only routes
     Route::middleware('admin')->prefix('/admin')->group(function () {
         Route::get('/users', UserManagement::class)->name('admin.users');
+        Route::get('/departments', Department::class)->name('admin.departments');
         Route::get('/categories', Category::class)->name('categories');
         Route::get('/templates/{categoryId}', Template::class)->name('admin.templates');
     });

@@ -4,12 +4,12 @@ namespace App\Livewire\Ticket;
 
 use App\Models\Department;
 use App\Models\Ticket\Ticket;
-use App\Models\Message;
 use App\Models\Ticket\Message as TicketMessage;
 use App\Models\Ticket\TicketDepartment;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
+use Livewire\Livewire;
 
 class TicketById extends Component
 {
@@ -90,14 +90,13 @@ class TicketById extends Component
 
         \App\Models\Ticket\Message::create([
             'user_id' => Auth::id(),
-            'type'=> 'system',
+            'type' => 'system',
             'ticket_id' => $this->id,
-            'content' => Auth::user()->name . ' assigned '. $department->name . ' Department successfully.',
+            'content' => Auth::user()->name . ' assigned ' . $department->name . ' Department successfully.',
         ]);
 
-        $this->currentDepartment = Department::find($departmentId);
-
         session()->flash('message', 'Ticket forwarded successfully!');
+        $this->loadMessages();
     }
     public function updateTicketStatus($ticketId, $status)
     {
@@ -116,9 +115,16 @@ class TicketById extends Component
 
         $ticket->update(['status' => $status]);
 
+        \App\Models\Ticket\Message::create([
+            'user_id' => Auth::id(),
+            'type' => 'system',
+            'ticket_id' => $this->id,
+            'content' => Auth::user()->name . ' has changed the status to ' . $status
+        ]);
+        $this->loadMessages();
         session()->flash('message', 'Ticket status updated successfully!');
     }
-public function updateTicketPriority($ticketId, $priority)
+    public function updateTicketPriority($ticketId, $priority)
     {
         $ticket = Ticket::find($ticketId);
 
@@ -129,6 +135,13 @@ public function updateTicketPriority($ticketId, $priority)
 
         $ticket->update(['priority' => $priority]);
 
+        \App\Models\Ticket\Message::create([
+            'user_id' => Auth::id(),
+            'type' => 'system',
+            'ticket_id' => $this->id,
+            'content' => Auth::user()->name . ' has changed the priority to ' . $priority ,
+        ]);
+        $this->loadMessages();
         session()->flash('message', 'Ticket priority updated successfully!');
     }
 

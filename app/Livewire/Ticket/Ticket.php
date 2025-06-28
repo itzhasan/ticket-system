@@ -11,6 +11,7 @@ use App\Models\Template\Template as TemplateTemplate;
 use App\Models\Ticket\Ticket as TicketTicket;
 use App\Services\UserAccessService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Title;
 
 class Ticket extends Component
@@ -80,7 +81,6 @@ class Ticket extends Component
             })
             ->get();
 
-
         return view('livewire.ticket.ticket', [
             'tickets' => $tickets,
             'categories' => $categories,
@@ -105,6 +105,8 @@ class Ticket extends Component
                     })
                     ->orWhereHas('user', function ($q4) use ($searchTerm) {
                         $q4->where('name', 'like', '%' . $searchTerm . '%');
+                    })->orWhereHas('ticketFieldsValues', function ($q5) use ($searchTerm) {
+                        $q5->where('value', 'like', '%' . $searchTerm . '%');
                     });
             });
         });
@@ -128,7 +130,7 @@ class Ticket extends Component
         $this->templateId = null;
         $this->templateFields = [];
         $this->fieldValues = [];
-        $this->departmentIds;
+        $this->departmentIds = null;
     }
 
     public function updatedTemplateId()
@@ -147,9 +149,11 @@ class Ticket extends Component
                     ];
                 })->toArray();
 
-                // Initialize field values
                 foreach ($this->templateFields as $field) {
                     $this->fieldValues[$field['id']] = '';
+                    if ($field['type'] == 'checkbox') {
+                        $this->fieldValues[$field['id']] = [];
+                    }
                 }
 
                 $this->departmentIds = $template->department_id;
@@ -157,7 +161,7 @@ class Ticket extends Component
         } else {
             $this->templateFields = [];
             $this->fieldValues = [];
-            $this->departmentIds;
+            $this->departmentIds = null;
         }
     }
 
@@ -181,23 +185,31 @@ class Ticket extends Component
             'templateId' => 'nullable|exists:templates,id',
         ]);
 
-        // Validate template fields if template is selected
         if ($this->templateId && !empty($this->templateFields)) {
             foreach ($this->templateFields as $field) {
                 $fieldValue = $this->fieldValues[$field['id']] ?? '';
 
-                if ($field['required'] && (empty($fieldValue) || (is_string($fieldValue) && trim($fieldValue) === ''))) {
-                    $this->addError('fieldValues.' . $field['id'], 'This field is required.');
+                if ($field['required']) {
+                    if ($field['type'] === 'checkbox') {
+                        if (empty($fieldValue) || !is_array($fieldValue) || count($fieldValue) === 0) {
+                            $this->addError('fieldValues.' . $field['id'], 'This field is required.');
+                        }
+                    } else {
+                        if (empty($fieldValue) || (is_string($fieldValue) && trim($fieldValue) === '')) {
+                            $this->addError('fieldValues.' . $field['id'], 'This field is required.');
+                        }
+                    }
                 }
             }
 
-            // If there are field validation errors don't proceed
             if ($this->getErrorBag()->has('fieldValues.*')) {
                 return;
             }
         }
 
         try {
+            DB::beginTransaction();
+
             $ticket = TicketTicket::create([
                 'title' => $this->title,
                 'priority' => $this->prioritySelected ?? 'Low',
@@ -208,32 +220,47 @@ class Ticket extends Component
 
             if ($this->templateId && !empty($this->templateFields)) {
                 foreach ($this->fieldValues as $fieldId => $value) {
-                    if (!empty($value) && trim($value) !== '') {
-                        TicketFieldsValue::create([
-                            'ticket_id' => $ticket->id,
-                            'template_field_id' => $fieldId,
-                            'value' => is_array($value) ? json_encode($value) : $value,
-                        ]);
+                    if (is_array($value)) {
+                        if (!empty($value)) {
+                            foreach ($value as $selectedOption) {
+                                TicketFieldsValue::create([
+                                    'ticket_id' => $ticket->id,
+                                    'template_field_id' => $fieldId,
+                                    'value' => $selectedOption,
+                                ]);
+                            }
+                        }
+                    } else {
+                        // For other field types - save as single record
+                        if (!empty($value) && trim($value) !== '') {
+                            TicketFieldsValue::create([
+                                'ticket_id' => $ticket->id,
+                                'template_field_id' => $fieldId,
+                                'value' => $value,
+                            ]);
+                        }
                     }
                 }
             }
 
-            TicketDepartment::create([
-                'ticket_id' => $ticket->id,
-                'department_id' => $this->departmentIds,
-            ]);
+            if ($this->departmentIds) {
+                TicketDepartment::create([
+                    'ticket_id' => $ticket->id,
+                    'department_id' => $this->departmentIds,
+                ]);
+            }
 
+            DB::commit();
 
             session()->flash('message', 'Ticket created successfully!');
-
             $this->resetForm();
             $this->closeCreateModal();
             $this->resetPage();
         } catch (\Exception $e) {
+            DB::rollBack();
             session()->flash('error', 'Failed to create ticket. Please try again.');
         }
     }
-
     public function viewTicket($ticketId)
     {
         return redirect()->route('ticket.view', ['id' => $ticketId]);

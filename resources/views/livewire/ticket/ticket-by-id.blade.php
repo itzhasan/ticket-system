@@ -53,12 +53,7 @@
                             @endif
                         </div>
 
-                        <!-- Flash Message -->
-                        @if (session()->has('message'))
-                            <div class="mt-2 text-green-600 text-sm">
-                                {{ session('message') }}
-                            </div>
-                        @endif
+
                     </div>
                     <div class="w-64">
                         <label class="">Status</label>
@@ -74,12 +69,6 @@
                             <option value="closed" {{ $selectedTicket->status === 'closed' ? 'selected' : '' }}>Closed
                             </option>
                         </select>
-
-                        @if (session()->has('message'))
-                            <div class="mt-2 text-green-600 text-sm">
-                                {{ session('message') }}
-                            </div>
-                        @endif
                     </div>
                     <div class="w-64">
                         <label class="">Priority</label>
@@ -94,12 +83,6 @@
                             <option value="Critical" {{ $selectedTicket->priority === 'Critical' ? 'selected' : '' }}>Critical
                             </option>
                         </select>
-
-                        @if (session()->has('message'))
-                            <div class="mt-2 text-green-600 text-sm">
-                                {{ session('message') }}
-                            </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -146,12 +129,27 @@
                 @if($selectedTicket->ticketFieldsValues->count() > 0)
                     <div class="bg-white rounded-lg shadow-sm border p-6">
                         <h2 class="text-lg font-medium text-gray-900 mb-4">Ticket Details</h2>
+
                         <div class="space-y-3">
-                            @foreach($selectedTicket->ticketFieldsValues as $fieldValue)
+                            @foreach($selectedTicket->ticketFieldsValues->groupBy('template_field_id') as $fieldId => $fieldValuesGroup)
                                 <div>
-                                    <label
-                                        class="text-sm font-medium text-gray-500">{{ $fieldValue->templateField->name }}</label>
-                                    <p class="text-sm text-gray-900 mt-1">{{ $fieldValue->value }}</p>
+                                    <label class="text-sm font-medium text-gray-500">
+                                        {{ $fieldValuesGroup->first()->templateField->name }}
+                                    </label>
+
+                                    @if($fieldValuesGroup->count() > 1)
+                                        <div class="flex flex-wrap gap-2 mt-1">
+                                            @foreach($fieldValuesGroup as $value)
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {{ $value->value }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <p class="text-sm text-gray-900 mt-1">
+                                            {{ $fieldValuesGroup->first()->value }}
+                                        </p>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -179,7 +177,7 @@
                                                 @if($message['type'] === 'system')
                                                     bg-amber-100 border border-amber-200 text-amber-800 text-center mx-auto max-w-fit
                                                 @else
-                                                                            {{ auth()->user()->id == $message['user_id']
+                                                    {{ auth()->user()->id == $message['user_id']
                                                     ? 'bg-blue-500 text-white shadow-blue-100 hover:bg-blue-600'
                                                     : 'bg-white border border-gray-200 text-gray-900 hover:border-gray-300' }}
                                                 @endif">

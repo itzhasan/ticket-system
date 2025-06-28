@@ -130,8 +130,9 @@
                                                     & Templates</a>
                                             </div>
                                             <a href="{{ route('admin.users') }}"
-                                                class="block py-2 px-4 rounded hover:bg-gray-700 transition-colors duration-200">Manage
-                                                Users</a>
+                                                class="block py-2 px-4 rounded hover:bg-gray-700 transition-colors duration-200">Manage Users</a>
+                                                <a href="{{ route('admin.departments') }}"
+                                                class="block py-2 px-4 rounded hover:bg-gray-700 transition-colors duration-200">Manage Departments</a>
                                         </div>
                                     </div>
                             </li>

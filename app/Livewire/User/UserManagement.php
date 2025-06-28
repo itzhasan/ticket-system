@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User;
 
+use App\Models\Department;
 use App\Models\Template\Category;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -18,9 +19,14 @@ class UserManagement extends Component
     public $showCategoryModal = false;
     public $selectedUserId = null;
     public $selectedCategories = [];
+    public $departments = [];
 
     protected $listeners = ['closeForm' => 'closeForm'];
 
+    public function mount()
+    {
+        $this->departments = Department::all();
+    }
     public function closeForm()
     {
         $this->showCreateForm = false;
@@ -61,6 +67,20 @@ class UserManagement extends Component
         if ($user && $user->id !== Auth::user()->id) {
             $user->delete();
             session()->flash('message', 'User deleted successfully!');
+        }
+    }
+    public function updateDepartment($departmentId, $userId){
+        try {
+            $user = User::find($userId);
+            if ($user) {
+                $user->department_id = $departmentId;
+                $user->save();
+                session()->flash('message', 'User department updated successfully!');
+            } else {
+                session()->flash('error', 'User not found.');
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to update user department: ' . $e->getMessage());
         }
     }
 
