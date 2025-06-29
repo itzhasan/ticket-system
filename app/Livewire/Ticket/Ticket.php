@@ -178,102 +178,93 @@ class Ticket extends Component
     }
 
     public function createTicket()
-{
+    {
 
-    $this->validate([
-        'title' => 'required|string|min:3|max:255',
-        'categoryId' => 'required|exists:categories,id',
-        'templateId' => 'nullable|exists:templates,id',
-        'prioritySelected' => 'nullable|in:Low,Medium,High,Critical', // Add priority validation
-    ]);
-
-    // Template field validation
-    if ($this->templateId && !empty($this->templateFields)) {
-        foreach ($this->templateFields as $field) {
-            $fieldValue = $this->fieldValues[$field['id']] ?? '';
-
-            if ($field['required']) {
-                if ($field['type'] === 'checkbox') {
-                    if (empty($fieldValue) || !is_array($fieldValue) || count($fieldValue) === 0) {
-                        $this->addError('fieldValues.' . $field['id'], 'This field is required.');
-                    }
-                } else {
-                    if (empty($fieldValue) || (is_string($fieldValue) && trim($fieldValue) === '')) {
-                        $this->addError('fieldValues.' . $field['id'], 'This field is required.');
-                    }
-                }
-            }
-        }
-
-        // Check if there are validation errors
-        if ($this->getErrorBag()->has('fieldValues.*')) {
-            return;
-        }
-    }
-
-    try {
-        DB::beginTransaction();
-
-        // Create the ticket
-        $ticket = TicketTicket::create([
-            'title' => $this->title,
-            'priority' => $this->prioritySelected ?? 'Low',
-            'category_id' => $this->categoryId,
-            'created_by_id' => Auth::id(),
-            'status' => 'pending',
-            'assigned_user_id' => 1, // Make sure user ID 1 exists
-            'assigned_department_id' => $this->departmentIds ?? null, // Handle null case
+        $this->validate([
+            'title' => 'required|string|min:3|max:255',
+            'categoryId' => 'required|exists:categories,id',
+            'templateId' => 'nullable|exists:templates,id',
+            'prioritySelected' => 'nullable|in:Low,Medium,High,Critical',
         ]);
 
-        // Save template field values
-        if ($this->templateId && !empty($this->templateFields) && !empty($this->fieldValues)) {
-            foreach ($this->fieldValues as $fieldId => $value) {
-                if (is_array($value)) {
-                    // Handle checkbox arrays
-                    if (!empty($value)) {
-                        foreach ($value as $selectedOption) {
-                            if (!empty($selectedOption)) { // Additional check
-                                TicketFieldsValue::create([
-                                    'ticket_id' => $ticket->id,
-                                    'template_field_id' => $fieldId,
-                                    'value' => $selectedOption,
-                                ]);
-                            }
+        if ($this->templateId && !empty($this->templateFields)) {
+            foreach ($this->templateFields as $field) {
+                $fieldValue = $this->fieldValues[$field['id']] ?? '';
+
+                if ($field['required']) {
+                    if ($field['type'] === 'checkbox') {
+                        if (empty($fieldValue) || !is_array($fieldValue) || count($fieldValue) === 0) {
+                            $this->addError('fieldValues.' . $field['id'], 'This field is required.');
                         }
-                    }
-                } else {
-                    // Handle single values
-                    if (!empty($value) && trim($value) !== '') {
-                        TicketFieldsValue::create([
-                            'ticket_id' => $ticket->id,
-                            'template_field_id' => $fieldId,
-                            'value' => $value,
-                        ]);
+                    } else {
+                        if (empty($fieldValue) || (is_string($fieldValue) && trim($fieldValue) === '')) {
+                            $this->addError('fieldValues.' . $field['id'], 'This field is required.');
+                        }
                     }
                 }
             }
+
+            if ($this->getErrorBag()->has('fieldValues.*')) {
+                return;
+            }
         }
 
-        // Create department association if department is selected
-        if (!empty($this->departmentIds)) {
-            TicketDepartment::create([
-                'ticket_id' => $ticket->id,
-                'department_id' => $this->departmentIds,
+        try {
+            DB::beginTransaction();
+
+            $ticket = TicketTicket::create([
+                'title' => $this->title,
+                'priority' => $this->prioritySelected ?? 'Low',
+                'category_id' => $this->categoryId,
+                'created_by_id' => Auth::id(),
+                'status' => 'pending',
+                'assigned_department_id' => $this->departmentIds ?? null,
             ]);
+
+            if ($this->templateId && !empty($this->templateFields) && !empty($this->fieldValues)) {
+                foreach ($this->fieldValues as $fieldId => $value) {
+                    if (is_array($value)) {
+                        if (!empty($value)) {
+                            foreach ($value as $selectedOption) {
+                                if (!empty($selectedOption)) {
+                                    TicketFieldsValue::create([
+                                        'ticket_id' => $ticket->id,
+                                        'template_field_id' => $fieldId,
+                                        'value' => $selectedOption,
+                                    ]);
+                                }
+                            }
+                        }
+                    } else {
+                        if (!empty($value) && trim($value) !== '') {
+                            TicketFieldsValue::create([
+                                'ticket_id' => $ticket->id,
+                                'template_field_id' => $fieldId,
+                                'value' => $value,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            if (!empty($this->departmentIds)) {
+                TicketDepartment::create([
+                    'ticket_id' => $ticket->id,
+                    'department_id' => $this->departmentIds,
+                ]);
+            }
+
+            DB::commit();
+
+            session()->flash('message', 'Ticket created successfully!');
+            $this->resetForm();
+            $this->closeCreateModal();
+            $this->resetPage();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'Failed to create ticket: ' . $e->getMessage());
         }
-
-        DB::commit();
-
-        session()->flash('message', 'Ticket created successfully!');
-        $this->resetForm();
-        $this->closeCreateModal();
-        $this->resetPage();
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        session()->flash('error', 'Failed to create ticket: ' . $e->getMessage());
     }
-}
     public function viewTicket($ticketId)
     {
         return redirect()->route('ticket.view', ['id' => $ticketId]);

@@ -17,7 +17,10 @@ class Ticket extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_id');

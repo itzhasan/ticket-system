@@ -65,4 +65,24 @@ class UserAccessService
         }
         return $this->user->categories;
     }
+    public function getUsers($ticketId)
+    {
+        $ticket = Ticket::with(['category', 'departments'])->findOrFail($ticketId);
+
+        $users = collect();
+
+        $categoryUsers = User::whereHas('categories', function ($query) use ($ticket) {
+            $query->where('category_id', $ticket->category_id);
+        })->get();
+
+        $users = $users->merge($categoryUsers);
+
+        if ($ticket->departments->isNotEmpty()) {
+            $departmentIds = $ticket->departments->pluck('id');
+            $departmentUsers = User::whereIn('department_id', $departmentIds)->get();
+            $users = $users->merge($departmentUsers);
+        }
+
+        return $users->unique('id')->values();
+    }
 }

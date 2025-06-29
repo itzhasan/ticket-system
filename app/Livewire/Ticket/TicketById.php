@@ -6,6 +6,8 @@ use App\Models\Department;
 use App\Models\Ticket\Ticket;
 use App\Models\Ticket\Message as TicketMessage;
 use App\Models\Ticket\TicketDepartment;
+use App\Models\User;
+use App\Services\UserAccessService;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
@@ -17,22 +19,18 @@ class TicketById extends Component
     public $id;
     public $messages = [];
     public $newMessage = '';
-    public $currentDepartment;
-
+    public $currentDepartment = '';
+    public function getAccessProperty()
+    {
+        return UserAccessService::for(Auth::user());
+    }
     public function mount($id)
     {
         $this->id = $id;
         $this->loadTicket();
         $this->loadMessages();
 
-        $lastDepartment = TicketDepartment::where('ticket_id', $this->id)
-            ->latest()
-            ->first();
-
-        #$this->currentDepartment = Department::where('id', $this->selectedTicket->assigned_department_id)->first();
-
-
-        $this->currentDepartment = $lastDepartment ? $lastDepartment->department : null;
+        $this->currentDepartment = Department::find($this->selectedTicket->assigned_department_id);
     }
 
     public function loadTicket()
@@ -83,6 +81,8 @@ class TicketById extends Component
             session()->flash('error', 'This department is already assigned .');
             return;
         }
+        $ticket = Ticket::find($this->id);
+        $ticket->update(['assigned_department_id' => $departmentId]);
 
         TicketDepartment::create([
             'ticket_id' => $this->id,
@@ -142,18 +142,38 @@ class TicketById extends Component
             'user_id' => Auth::id(),
             'type' => 'system',
             'ticket_id' => $this->id,
-            'content' => Auth::user()->name . ' has changed the priority to ' . $priority ,
+            'content' => Auth::user()->name . ' has changed the priority to ' . $priority,
         ]);
         $this->loadMessages();
         session()->flash('message', 'Ticket priority updated successfully!');
     }
 
+    public function assignUser($userId)
+    {
+        try {
+            $user = User::findOrFail($userId);
+
+            $this->selectedTicket->update([
+                'assigned_user_id' => $userId,
+            ]);
+            TicketMessage::create([
+                'user_id' => Auth::id(),
+                'type' => 'system',
+                'ticket_id' => $this->id,
+                'content' => Auth::user()->name . ' assigned ' . $user->name . ' to the ticket successfully.',
+            ]);
+            $this->loadMessages();
+        } catch (\Exception $e) {
+            $this->addError('assignment', 'Failed to assign user: ' . $e->getMessage());
+        }
+    }
 
     #[Title('Ticket Details')]
     public function render()
     {
         return view('livewire.ticket.ticket-by-id', [
             'departments' => Department::all(),
+            'users' => $this->access->getUsers($this->id),
         ]);
     }
 }

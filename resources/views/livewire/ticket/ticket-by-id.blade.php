@@ -52,8 +52,16 @@
                                 </div>
                             @endif
                         </div>
-
-
+                        <label class="">Assign User</label>
+                        <select wire:change="assignUser($event.target.value)"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select User to Assign</option>
+                            @foreach ($users as $user)
+                                <option value="{{ $user->id }}" {{ $selectedTicket->assigned_user_id == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }} ({{ $user->department->name ?? 'No Dept' }})
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="w-64">
                         <label class="">Status</label>
@@ -169,64 +177,66 @@
                         <div class="space-y-4 min-h-full flex flex-col justify-end">
                             @if(count($messages) > 0)
                                 @foreach($messages as $message)
-                                        <div class="flex
-                                    @if($message['type'] === 'system') justify-center
-                                    @else {{ auth()->user()->id == $message['user_id'] ? 'justify-end' : 'justify-start' }}
-                                    @endif">
-                                            <div class="max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl">
-                                                <div class="group relative">
-                                                    <div class="px-5 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md
-                                                @if($message['type'] === 'system')
-                                                    bg-amber-100 border border-amber-200 text-amber-800 text-center mx-auto max-w-fit
-                                                @else
-                                                                            {{ auth()->user()->id == $message['user_id']
-                                                    ? 'bg-blue-500 text-white shadow-blue-100 hover:bg-blue-600'
-                                                    : 'bg-white border border-gray-200 text-gray-900 hover:border-gray-300' }}
-                                                @endif">
+                                    <div class="flex
+                                                    @if($message['type'] === 'system') justify-center
+                                                    @else {{ auth()->user()->id == $message['user_id'] ? 'justify-end' : 'justify-start' }}
+                                                    @endif">
+                                        <div class="max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl">
+                                            <div class="group relative">
+                                                <div class="px-5 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md
+                                                                @if($message['type'] === 'system')
+                                                                    bg-amber-100 border border-amber-200 text-amber-800 text-center mx-auto max-w-fit
+                                                                @else
+                                                                                                                                                                            {{ auth()->user()->id == $message['user_id']
+                                                                    ? 'bg-blue-500 text-white shadow-blue-100 hover:bg-blue-600'
+                                                                    : 'bg-white border border-gray-200 text-gray-900 hover:border-gray-300' }}
+                                                                @endif">
 
-                                                        @if($message['type'] === 'system')
-                                                            <div class="flex items-center justify-center space-x-2">
-                                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fill-rule="evenodd"
-                                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                                                        clip-rule="evenodd"></path>
-                                                                </svg>
-                                                                <p class="text-sm font-medium">{{ $message['content'] }}</p>
-                                                            </div>
-                                                        @else
-                                                            <p class="text-sm lg:text-base leading-relaxed whitespace-pre-wrap">
-                                                                {{ $message['content'] }}
-                                                            </p>
-                                                        @endif
-                                                    </div>
-                                                    @if($message['type'] !== 'system')
-                                                                                <div class="absolute top-4
-                                                                                {{ auth()->user()->id == $message['user_id'] ? '-right-1' : '-left-1' }}">
-                                                                                    <div class="w-3 h-3 transform rotate-45
-                                                                                    {{ auth()->user()->id == $message['user_id']
-                                                        ? 'bg-blue-500'
-                                                        : 'bg-white border-l border-b border-gray-200' }}">
-                                                                                    </div>
-                                                                                </div>
+                                                    @if($message['type'] === 'system')
+                                                        <div class="flex items-center justify-center space-x-2">
+                                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd"
+                                                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                                    clip-rule="evenodd"></path>
+                                                            </svg>
+                                                            <p class="text-sm font-medium">{{ $message['content'] }}</p>
+                                                        </div>
+                                                    @else
+                                                        <p class="text-sm lg:text-base leading-relaxed whitespace-pre-wrap">
+                                                            {{ $message['content'] }}
+                                                        </p>
                                                     @endif
                                                 </div>
-
                                                 @if($message['type'] !== 'system')
-                                                    <div
-                                                        class="mt-2 px-2 {{ auth()->user()->id == $message['user_id'] ? 'text-right' : 'text-left' }}">
-                                                        <div
-                                                            class="flex items-center space-x-2 {{ auth()->user()->id == $message['user_id'] ? 'justify-end' : 'justify-start' }}">
-                                                            <span class="text-xs lg:text-sm text-gray-500
-                                                            {{ auth()->user()->id == $message['user_id'] ? 'order-1' : 'order-2' }}">
-                                                                <span class="font-medium">{{ $message['user']['name'] }}</span>
-                                                                <span class="mx-1">•</span>
-                                                                <span>{{ \Carbon\Carbon::parse($message['created_at'])->format('M d, H:i') }}</span>
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                                                            <div
+                                                                                class="absolute top-4
+                                                                                                                                                        {{ auth()->user()->id == $message['user_id'] ? '-right-1' : '-left-1' }}">
+                                                                                <div class="w-3 h-3 transform rotate-45
+                                                                                                                                                            {{ auth()->user()->id == $message['user_id']
+                                                    ? 'bg-blue-500'
+                                                    : 'bg-white border-l border-b border-gray-200' }}">
+                                                                                </div>
+                                                                            </div>
                                                 @endif
                                             </div>
+
+                                            @if($message['type'] !== 'system')
+                                                <div
+                                                    class="mt-2 px-2 {{ auth()->user()->id == $message['user_id'] ? 'text-right' : 'text-left' }}">
+                                                    <div
+                                                        class="flex items-center space-x-2 {{ auth()->user()->id == $message['user_id'] ? 'justify-end' : 'justify-start' }}">
+                                                        <span
+                                                            class="text-xs lg:text-sm text-gray-500
+                                                                                    {{ auth()->user()->id == $message['user_id'] ? 'order-1' : 'order-2' }}">
+                                                            <span class="font-medium">{{ $message['user']['name'] }}</span>
+                                                            <span class="mx-1">•</span>
+                                                            <span>{{ \Carbon\Carbon::parse($message['created_at'])->format('M d, H:i') }}</span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
+                                    </div>
                                 @endforeach
                             @else
                                 <div class="flex flex-col justify-center items-center h-40 space-y-4 transform rotate-180">
