@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Template\Category;
 use App\Models\Template\Template;
+use App\Models\Template\UserCategory;
 use App\Models\Ticket\Ticket;
+use App\Models\Ticket\TicketDepartment;
 use App\Models\User;
 
 
@@ -67,22 +69,10 @@ class UserAccessService
     }
     public function getUsers($ticketId)
     {
-        $ticket = Ticket::with(['category', 'departments'])->findOrFail($ticketId);
-
-        $users = collect();
-
-        $categoryUsers = User::whereHas('categories', function ($query) use ($ticket) {
-            $query->where('category_id', $ticket->category_id);
-        })->get();
-
-        $users = $users->merge($categoryUsers);
-
-        if ($ticket->departments->isNotEmpty()) {
-            $departmentIds = $ticket->departments->pluck('id');
-            $departmentUsers = User::whereIn('department_id', $departmentIds)->get();
-            $users = $users->merge($departmentUsers);
-        }
-
-        return $users->unique('id')->values();
+        $ticket = Ticket::findOrFail($ticketId);
+        $departments = TicketDepartment::select('department_id')->where('ticket_id', $ticketId)->get();
+        $userIds = UserCategory::select('user_id')->where('category_id', $ticket->category_id)->get();
+        $users = User::whereIn('id', $userIds)->whereIn('department_id', $departments)->get();
+        return $users;
     }
 }

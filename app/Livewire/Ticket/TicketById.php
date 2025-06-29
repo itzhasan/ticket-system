@@ -145,7 +145,7 @@ class TicketById extends Component
             'content' => Auth::user()->name . ' has changed the priority to ' . $priority,
         ]);
         $this->loadMessages();
-        session()->flash('message', 'Ticket priority updated successfully!');
+        session()->flash('message', 'Ticket priority updated!');
     }
 
     public function assignUser($userId)
@@ -160,7 +160,7 @@ class TicketById extends Component
                 'user_id' => Auth::id(),
                 'type' => 'system',
                 'ticket_id' => $this->id,
-                'content' => Auth::user()->name . ' assigned ' . $user->name . ' to the ticket successfully.',
+                'content' => Auth::user()->name . ' assigned ' . $user->name . ' to the ticket.',
             ]);
             $this->loadMessages();
         } catch (\Exception $e) {
