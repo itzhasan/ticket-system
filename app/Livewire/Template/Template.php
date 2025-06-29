@@ -85,7 +85,6 @@ class Template extends Component
         $this->fieldOptions[] = '';
     }
 
-    // Remove option input
     public function removeOption($index)
     {
         if (count($this->fieldOptions) > 1) {

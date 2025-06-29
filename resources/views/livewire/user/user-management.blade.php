@@ -8,11 +8,7 @@
                     Add New User
                 </button>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <input wire:model.live.debounce.500ms="search" type="text" placeholder="Search tickets..."
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
+
 
             @if (session()->has('message'))
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
@@ -24,7 +20,11 @@
             @if($showCreateForm)
                 <livewire:auth.register />
             @endif
-
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <input wire:model.live.debounce.500ms="search" type="text" placeholder="Search tickets..."
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
             <!-- Users Table -->
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -65,17 +65,16 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            {{ $user->role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800' }}">
+                                                {{ $user->role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800' }}">
                                         {{ ucfirst($user->role) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <select
-                                        wire:change="updateDepartment($event.target.value,{{$user->id}})"
+                                    <select wire:change="updateDepartment($event.target.value,{{$user->id}})"
                                         class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                         @foreach ($departments as $department)
-                                            <option value="{{ $department->id }}"
-                                                @if($user->department_id === $department->id) selected @endif>
+                                            <option value="{{ $department->id }}" @if($user->department_id === $department->id)
+                                            selected @endif>
                                                 {{ $department->name }}
                                             </option>
                                         @endforeach
