@@ -3,6 +3,7 @@
 namespace App\Models\Template;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FieldOption extends Model
 {

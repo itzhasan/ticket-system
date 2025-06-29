@@ -4,9 +4,11 @@ namespace App\Models\Template;
 
 use App\Models\Department;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Template extends Model
 {
+
     protected $guarded = ['id'];
     public function department()
     {
@@ -24,7 +26,7 @@ class Template extends Model
     {
         return $this->hasMany(TemplateFields::class)->orderBy('order');
     }
-     public function requiredFields()
+    public function requiredFields()
     {
         return $this->hasMany(TemplateFields::class)->where('required', true)->orderBy('order');
     }
@@ -48,7 +50,7 @@ class Template extends Model
     {
         return $this->fields()->where('required', true)->count();
     }
-      public function hasFields()
+    public function hasFields()
     {
         return $this->fields()->exists();
     }

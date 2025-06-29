@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('created_by_id')->constrained('users');
             $table->foreignId('category_id')->constrained('categories');
-            $table->integer('priority')->default(1); 
+            $table->integer('priority')->default(1);
             $table->string('title');
+            $table->foreignId('assigned_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('assigned_department_id')->nullable()->constrained('departments')->nullOnDelete();
             $table->enum('status', ['pending', 'in_progress', 'resolved', 'closed'])->default('pending');
             $table->softDeletes();
             $table->timestamps();

@@ -4,9 +4,11 @@ namespace App\Models\Template;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserCategory extends Model
 {
+    use SoftDeletes;
     protected $guarded = ['id'];
 
     public function users()

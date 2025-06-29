@@ -8,6 +8,11 @@
                     Add New User
                 </button>
             </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <input wire:model.live.debounce.500ms="search" type="text" placeholder="Search tickets..."
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
             @if (session()->has('message'))
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
@@ -74,7 +79,6 @@
                                                 {{ $department->name }}
                                             </option>
                                         @endforeach
-                                        <option value="Low">Low</option>
                                     </select>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

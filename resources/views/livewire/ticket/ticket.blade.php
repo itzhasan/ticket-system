@@ -62,7 +62,7 @@
 
     <!-- Tickets Table -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden relative">
-        <div wire:loading.delay wire:target="search,statusFilter,categoryFilter,priority,updateTicketStatus,deleteTicket,viewTicket"
+        <div wire:loading.delay wire:target="search,statusFilter,categoryFilter,priority,updateTicketStatus,viewTicket"
          class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-20">
         <div class="flex flex-col items-center space-y-2">
             <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -72,7 +72,6 @@
             <span class="text-blue-600 font-medium">Loading tickets...</span>
         </div>
     </div>
-    {{-- this type of loading I search on it it give better ux --}}
     <div wire:loading.class="opacity-50" wire:target="search,statusFilter,categoryFilter,priority">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -147,8 +146,6 @@
                                     </select>
                                 </div>
 
-                                <button wire:click="deleteTicket({{ $ticket->id }})"
-                                    class="text-red-600 hover:text-red-900">Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -178,7 +175,7 @@
                         <!-- Title Field -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Title <span class="text-red-500">*</span></label>
-                            <input wire:model="title" type="text" placeholder="Enter ticket title"
+                            <input wire:model.live="title" type="text" placeholder="Enter ticket title"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('title') border-red-500 @enderror">
                             @error('title') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
@@ -237,17 +234,17 @@
                                             </label>
 
                                             @if($field['type'] === 'text')
-                                                <input wire:model="fieldValues.{{ $field['id'] }}" type="text"
+                                                <input wire:model.live="fieldValues.{{ $field['id'] }}" type="text"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror"
                                                     placeholder="Enter {{ strtolower($field['name']) }}">
 
                                             @elseif($field['type'] === 'textarea')
-                                                <textarea wire:model="fieldValues.{{ $field['id'] }}" rows="3"
+                                                <textarea wire:model.live="fieldValues.{{ $field['id'] }}" rows="3"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror"
                                                     placeholder="Enter {{ strtolower($field['name']) }}"></textarea>
 
                                             @elseif($field['type'] === 'select')
-                                                <select wire:model="fieldValues.{{ $field['id'] }}"
+                                                <select wire:model.live="fieldValues.{{ $field['id'] }}"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
                                                     <option value="">Select {{ $field['name'] }}</option>
                                                     @if(!empty($field['options']))
@@ -262,7 +259,7 @@
                                                     @if(!empty($field['options']))
                                                         @foreach($field['options'] as $option)
                                                             <label class="flex items-center">
-                                                                <input type="radio" wire:model="fieldValues.{{ $field['id'] }}" value="{{ $option }}"
+                                                                <input type="radio" wire:model.live="fieldValues.{{ $field['id'] }}" value="{{ $option }}"
                                                                     class="text-blue-600 focus:ring-blue-500">
                                                                 <span class="ml-2 text-sm text-gray-700">{{ $option }}</span>
                                                             </label>
@@ -275,7 +272,7 @@
                                                     @foreach($field['options'] as $option)
                                                         <label class="flex items-center">
                                                             <input type="checkbox"
-                                                                wire:model="fieldValues.{{ $field['id'] }}"
+                                                                wire:model.live="fieldValues.{{ $field['id'] }}"
                                                                 value="{{ $option }}"
                                                                 class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                                             <span class="ml-2 text-sm text-gray-700">{{ $option }}</span>
@@ -283,14 +280,14 @@
                                                     @endforeach
                                                 </div>
                                             @elseif($field['type'] === 'date')
-                                                <input wire:model="fieldValues.{{ $field['id'] }}" type="date"
+                                                <input wire:model.live="fieldValues.{{ $field['id'] }}" type="date"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
-                                            @elseif($field['type'] === 'datetime-local')
-                                                <input wire:model="fieldValues.{{ $field['id'] }}" type="datetime-local"
+                                            @elseif($field['type'] === 'datetime')
+                                                <input wire:model.live="fieldValues.{{ $field['id'] }}" type="datetime-local"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
 
                                             @elseif($field['type'] === 'file')
-                                                <input wire:model="fieldValues.{{ $field['id'] }}" type="file"
+                                                <input wire:model.live="fieldValues.{{ $field['id'] }}" type="file"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('fieldValues.' . $field['id']) border-red-500 @enderror">
                                             @endif
 
@@ -303,6 +300,42 @@
                             </div>
                         @endif
 
+                        @php
+                            $isFormValid = true;
+
+                            if (empty($title) || strlen(trim($title)) < 3) {
+                                $isFormValid = false;
+                            }
+
+                            if (empty($categoryId)) {
+                                $isFormValid = false;
+                            }
+
+                            if (!empty($categoryId) && empty($templateId)) {
+                                $isFormValid = false;
+                            }
+
+                            if (!empty($templateFields)) {
+                                foreach ($templateFields as $field) {
+                                    if ($field['required']) {
+                                        $fieldValue = $fieldValues[$field['id']] ?? '';
+
+                                        if ($field['type'] === 'checkbox') {
+                                            if (empty($fieldValue) || !is_array($fieldValue) || count($fieldValue) === 0) {
+                                                $isFormValid = false;
+                                                break;
+                                            }
+                                        } else {
+                                            if (empty($fieldValue) || (is_string($fieldValue) && trim($fieldValue) === '')) {
+                                                $isFormValid = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        @endphp
+
                         <!-- Form Actions -->
                         <div class="flex items-center justify-end space-x-4 mt-6 pt-4 border-t">
                             <button type="button" wire:click="closeCreateModal"
@@ -310,7 +343,13 @@
                                 Cancel
                             </button>
                             <button type="submit"
-                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @if(!$isFormValid) disabled @endif
+                                class="px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500
+                                @if($isFormValid)
+                                    bg-blue-600 text-white hover:bg-blue-700 cursor-pointer
+                                @else
+                                    bg-gray-400 text-gray-600 cursor-not-allowed
+                                @endif">
                                 Create Ticket
                             </button>
                         </div>

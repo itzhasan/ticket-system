@@ -20,6 +20,7 @@ class UserManagement extends Component
     public $selectedUserId = null;
     public $selectedCategories = [];
     public $departments = [];
+    public $search = '';
 
     protected $listeners = ['closeForm' => 'closeForm'];
 
@@ -27,6 +28,7 @@ class UserManagement extends Component
     {
         $this->departments = Department::all();
     }
+
     public function closeForm()
     {
         $this->showCreateForm = false;
@@ -86,7 +88,10 @@ class UserManagement extends Component
     public function render()
     {
         return view('livewire.user.user-management', [
-            'users' => User::with(['department', 'categories'])->paginate(10),
+            'users' =>  User::with(['department', 'categories'])
+            ->where('name', 'like', '%' . $this->search . '%')
+            ->orWhere('email', 'like', '%' . $this->search . '%')
+            ->paginate(10),
             'allCategories' => Category::all(),
         ]);
     }

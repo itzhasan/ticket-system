@@ -4,9 +4,11 @@ namespace App\Models\Ticket;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Message extends Model
 {
+    use SoftDeletes;
     protected $guarded = ['id'];
     protected $casts = [
         'created_at' => 'datetime',

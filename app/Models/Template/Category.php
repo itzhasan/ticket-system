@@ -4,9 +4,11 @@ namespace App\Models\Template;
 use App\Models\Template\Template;
 use App\Models\Ticket\Ticket;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
+    use SoftDeletes;
     protected $guarded = ['id'];
      protected $casts = [
         'created_at' => 'datetime',

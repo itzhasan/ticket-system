@@ -8,11 +8,13 @@ use App\Models\Template\Category;
 use App\Models\Template\UserCategory;
 use App\Models\Ticket\Message;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use SoftDeletes;
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
@@ -69,6 +71,6 @@ class User extends Authenticatable
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'user_categories')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 }

@@ -4,11 +4,13 @@ namespace App\Models\Template;
 
 use App\Models\Ticket\TicketFieldsValue;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TemplateFields extends Model
 {
+
     protected $guarded = ['id'];
-     protected $casts = [
+    protected $casts = [
         'required' => 'boolean',
         'order' => 'integer',
         'created_at' => 'datetime',
@@ -24,10 +26,11 @@ class TemplateFields extends Model
     {
         return $this->hasMany(FieldOption::class, 'template_field_id');
     }
-    public function ticketFields(){
+    public function ticketFields()
+    {
         return $this->hasMany(TicketFieldsValue::class);
     }
-     // Get options as array
+    // Get options as array
     public function getOptionsArrayAttribute()
     {
         if (empty($this->options)) {
